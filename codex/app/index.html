@@ -1,0 +1,1777 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Brain · Codex</title>
+<link rel="icon" type="image/png" href="icon.png?v=2">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050403">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050403; --panel: rgba(12, 10, 7, .74); --line: rgba(255, 181, 71, .16); --line2: rgba(255, 181, 71, .32);
+  --gold: #ffb547; --text: #ece5d6; --dim: #8d8576; --faint: #4d473e;
+  --mono: 'JetBrains Mono', Consolas, monospace; --sans: Inter, 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: rgba(255, 181, 71, .38) transparent; }
+:root { color-scheme: dark; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 181, 71, .35); border-radius: 4px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 181, 71, .6); }
+::-webkit-scrollbar-button { display: none; }
+::selection { background: rgba(255, 181, 71, .35); color: #fff6e3; }
+button:focus-visible, input:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+input[type=checkbox] { accent-color: var(--gold); }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.5 var(--sans); overflow: hidden; }
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.lbl { position: absolute; left: 0; top: 0; white-space: nowrap; font: 400 10.5px/1 var(--mono); letter-spacing: .06em; color: var(--c); transition: opacity .25s; }
+.lbl i { position: absolute; left: 4px; top: -4px; width: 16px; height: 1px; background: var(--c); opacity: .55; transform: rotate(-32deg); transform-origin: 0 0; }
+.lbl span { position: absolute; left: 19px; top: -19px; padding: 2px 5px; background: rgba(5, 4, 3, .55); border-left: 1px solid var(--c); }
+.lbl.core span { font-size: 12px; font-weight: 600; letter-spacing: .3em; color: #fff3d6; }
+.lbl.sel span { background: var(--c); color: #0b0906; font-weight: 600; }
+
+.panel { position: fixed; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 3px; }
+.ph { font: 600 10px/1 var(--mono); letter-spacing: .18em; color: var(--gold); margin: 16px 0 9px; display: flex; justify-content: space-between; gap: 8px; }
+.ph:first-child { margin-top: 0; }
+.ph span { color: var(--faint); font-weight: 400; letter-spacing: .06em; text-transform: none; }
+
+#brand { position: fixed; left: 22px; top: 18px; pointer-events: none; }
+#brand .kicker { font: 400 10px var(--mono); letter-spacing: .3em; color: var(--dim); }
+#brand h1 { margin: 2px 0 2px; font: 300 30px/1.1 var(--mono); letter-spacing: .32em; color: #fff3d6; text-shadow: 0 0 22px rgba(255, 181, 71, .45); }
+#brand .sub { font: 400 10.5px var(--mono); color: var(--dim); letter-spacing: .04em; }
+#spectrum { display: block; margin-top: 10px; opacity: .9; pointer-events: auto; cursor: pointer; }
+
+#left { left: 22px; top: 150px; width: 258px; padding: 16px; max-height: calc(100% - 172px); overflow: auto; }
+.layer { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 10px; padding: 6px 8px; margin: 0 -8px; border-radius: 2px; cursor: pointer; user-select: none; }
+.layer:hover { background: rgba(255, 181, 71, .06); }
+.layer .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
+.layer .nm { font: 500 12.5px var(--sans); }
+.layer .ct { font: 400 11px var(--mono); color: var(--dim); }
+.layer.off { opacity: .32; }
+.layer.off .dot { box-shadow: none; }
+.sl { display: grid; grid-template-columns: 1fr 34px; gap: 2px 8px; font: 400 10.5px var(--mono); color: var(--dim); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.sl input { grid-column: 1 / -1; grid-row: 2; }
+.sl b { font-weight: 400; color: var(--gold); text-align: right; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 2px; background: var(--line2); outline: none; margin: 6px 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); cursor: pointer; }
+.chk { display: flex; gap: 8px; align-items: center; font: 400 10.5px var(--mono); color: var(--dim); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.chk input { accent-color: var(--gold); }
+.bud { margin-bottom: 7px; cursor: default; }
+.bud .row { display: flex; justify-content: space-between; font: 400 11px var(--mono); color: var(--text); }
+.bud .row b { font-weight: 400; color: var(--gold); }
+.bud .bar { height: 3px; background: rgba(255, 255, 255, .05); margin-top: 3px; }
+.bud .bar i { display: block; height: 100%; background: linear-gradient(90deg, #a8661e, var(--gold)); box-shadow: 0 0 8px rgba(255, 181, 71, .6); }
+.note { font: 400 11px/1.45 var(--sans); color: var(--dim); margin-top: 8px; }
+
+#files { left: 162px; bottom: 78px; width: 340px; padding: 16px; max-height: calc(100% - 172px); overflow: auto; }
+#files details { border-top: 1px solid var(--line); padding: 9px 0 2px; }
+#files summary { cursor: pointer; list-style: none; font: 600 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+#files summary::-webkit-details-marker { display: none; }
+#files summary::after { content: '+'; float: right; color: var(--dim); font-weight: 400; }
+#files details[open] summary::after { content: '–'; }
+#files summary:hover { color: #fff3d6; }
+.tree { margin: 8px 0 6px; }
+.tree dt { font: 500 11px var(--mono); color: #ffcf7a; margin-top: 8px; }
+.tree dd { margin: 1px 0 0 12px; font: 400 12px/1.45 var(--sans); color: var(--dim); }
+.steps { margin: 8px 0 6px; padding-left: 18px; font: 400 12px/1.5 var(--sans); color: var(--dim); }
+.steps li { margin-top: 7px; } .steps li::marker { color: var(--gold); font: 600 11px var(--mono); }
+.steps b { color: var(--text); font-weight: 600; }
+#usage { left: 32px; bottom: 78px; width: 330px; padding: 16px; }
+#usage .ph { margin-bottom: 2px; }
+.ur { display: flex; align-items: baseline; gap: 10px; margin-top: 11px; font: 400 12.5px var(--sans); color: var(--text); }
+.ur span { flex: 1; white-space: nowrap; } .ur.h span { font-weight: 600; }
+.ur em { font: 400 10.5px var(--mono); font-style: normal; color: var(--dim); }
+.ur b { font: 500 11px var(--mono); color: var(--gold); }
+.ur.dim { color: var(--dim); font-size: 11.5px; } .ur.dim b { color: var(--faint); font-weight: 400; }
+.ubar { height: 4px; margin-top: 6px; border-radius: 2px; overflow: hidden; background: rgba(255, 255, 255, .06); }
+.ubar i { display: block; height: 100%; background: linear-gradient(90deg, #a8661e, var(--gold)); box-shadow: 0 0 8px rgba(255, 181, 71, .6); }
+.usep { border-top: 1px solid var(--line); margin: 13px 0 0; }
+/* minimize: a small button in each panel's top padding; minimized panels shrink to their title */
+.minbar { position: sticky; top: -1px; height: 0; z-index: 2; }
+.min { position: absolute; right: -10px; top: -15px; width: 14px; height: 14px; padding: 0; border: 0; background: none; color: var(--dim); font: 400 13px/14px var(--mono); cursor: pointer; }
+.min:hover { color: var(--gold); }
+.panel.mini { display: flex; align-items: center; gap: 14px; width: auto !important; padding: 9px 12px 9px 14px !important; max-height: none !important; overflow: hidden !important; }
+.panel.mini > :not(.minbar) { display: none !important; }
+.panel.mini::before { content: attr(data-title); flex: 1; font: 600 10.5px var(--mono); letter-spacing: .2em; color: var(--gold); }
+.panel.mini .minbar, .panel.mini .min { position: static; height: auto; }
+#right { right: 22px; top: 18px; width: 340px; padding: 18px; max-height: calc(100% - 36px); overflow: auto; }
+.badge { display: inline-block; font: 600 9.5px/1 var(--mono); letter-spacing: .16em; padding: 4px 7px; border: 1px solid var(--c); color: var(--c); border-radius: 2px; }
+.badge.fill { background: var(--c); color: #0b0906; }
+#insp h2 { margin: 10px 0 4px; font: 500 21px/1.2 var(--sans); color: #fff6e3; word-break: break-word; }
+#insp .desc { color: #cfc7b7; margin: 6px 0 2px; }
+.kv { display: grid; grid-template-columns: 82px 1fr; gap: 6px 10px; margin-top: 4px; font-size: 12px; }
+.kv dt { font: 400 10px/1.9 var(--mono); letter-spacing: .12em; color: var(--dim); text-transform: uppercase; }
+.kv dd { margin: 0; word-break: break-all; }
+.kv a { color: var(--gold); text-decoration: none; border-bottom: 1px dotted var(--line2); }
+.how { margin-top: 10px; padding: 10px 12px; border-left: 2px solid var(--c); background: rgba(255, 255, 255, .025); color: #ddd5c4; font-size: 12.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font: 400 11px var(--mono); padding: 4px 8px; border: 1px solid rgba(255, 255, 255, .1); border-left: 2px solid var(--c); background: rgba(255, 255, 255, .03); color: var(--text); cursor: pointer; border-radius: 2px; }
+.chip:hover { background: rgba(255, 181, 71, .1); }
+.chip small { color: var(--dim); margin-left: 4px; }
+.outline { margin: 0; padding-left: 16px; color: #cfc7b7; font-size: 12px; }
+.outline li::marker { color: var(--gold); }
+.card { display: grid; grid-template-columns: 22px 1fr; gap: 2px 10px; padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, .05); cursor: pointer; }
+.card:hover h4, .card.on h4 { color: var(--gold); }
+.card.on { background: rgba(255, 181, 71, .07); }
+.card .n { font: 600 11px var(--mono); color: var(--c); padding-top: 2px; }
+.card h4 { margin: 0; font: 600 13px var(--sans); }
+.card p { grid-column: 2; margin: 0; color: var(--dim); font-size: 12px; }
+
+.stl { font: 600 10px var(--mono); letter-spacing: .16em; color: var(--gold); margin-right: 8px; }
+
+#tabs { display: flex; gap: 4px; margin: -4px 0 14px; position: sticky; top: -18px; z-index: 1; padding-top: 4px; background: rgba(12, 10, 7, .96); }
+#tabs button { flex: 1; background: none; border: 1px solid var(--line); color: var(--dim); font: 600 10px var(--mono); letter-spacing: .18em; padding: 7px 0; cursor: pointer; border-radius: 2px; }
+#tabs button.on { color: #0b0906; background: var(--gold); border-color: var(--gold); }
+.livedot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ff5a3a; margin-left: 7px; vertical-align: 1px; box-shadow: 0 0 8px #ff5a3a; animation: blink 1.4s infinite; }
+.livedot.off { background: var(--faint); box-shadow: none; animation: none; }
+@keyframes blink { 50% { opacity: .3; } }
+.hsearch { width: 100%; margin-top: 12px; background: rgba(0, 0, 0, .4); border: 1px solid var(--line2); color: var(--text); font: 400 12.5px var(--sans); padding: 7px 10px; border-radius: 2px; outline: none; }
+.hsearch:focus { border-color: var(--gold); }
+.day { font: 600 10px var(--mono); letter-spacing: .18em; color: var(--gold); margin: 16px 0 4px; }
+.turn { padding: 8px 10px; margin: 0 -10px; border-left: 2px solid transparent; cursor: pointer; border-radius: 2px; }
+.turn:hover { background: rgba(255, 181, 71, .06); border-left-color: var(--gold); }
+.turn .meta { display: flex; justify-content: space-between; gap: 8px; font: 400 10px var(--mono); color: var(--dim); letter-spacing: .05em; }
+.turn .txt { font-size: 12.5px; color: #ddd5c4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; word-break: break-word; }
+.turn .chips { margin-top: 5px; }
+.turn .chip, .step .chip { font-size: 10px; padding: 2px 6px; cursor: default; }
+.live { color: #ff7a5a; font-weight: 600; }
+.prompt { white-space: pre-wrap; word-break: break-word; max-height: 150px; overflow: auto; font-size: 13px; color: #fff3d6; padding: 10px 12px; background: rgba(255, 255, 255, .03); border-left: 2px solid var(--gold); margin: 10px 0 8px; }
+.player { display: flex; gap: 6px; align-items: center; margin: 14px 0 8px; }
+.player button { background: rgba(255, 255, 255, .04); border: 1px solid var(--line2); color: var(--text); font: 600 10.5px var(--mono); letter-spacing: .1em; padding: 6px 10px; cursor: pointer; border-radius: 2px; }
+.player button.main { background: var(--gold); color: #0b0906; border-color: var(--gold); min-width: 64px; }
+.player .pos { margin-left: auto; font: 400 11px var(--mono); color: var(--dim); }
+.step { display: grid; grid-template-columns: 84px 1fr; gap: 1px 10px; padding: 6px 8px; margin: 0 -8px; border-left: 2px solid var(--c); cursor: pointer; opacity: .5; transition: opacity .2s, background .2s; }
+.step:hover { opacity: .9; }
+.step.done { opacity: .82; }
+.step.on { opacity: 1; background: rgba(255, 181, 71, .09); }
+.step .v { font: 600 9.5px/1.6 var(--mono); letter-spacing: .08em; color: var(--c); }
+.step .l { font-size: 12px; color: #ddd5c4; word-break: break-word; }
+.step .x { grid-column: 2; font: 400 10.5px var(--mono); color: var(--dim); word-break: break-word; }
+#now { display: none; position: sticky; top: 20px; z-index: 1; margin: -4px 0 14px; padding: 9px 11px; background: rgba(16, 13, 9, .97); border: 1px solid var(--line2); border-left: 2px solid var(--gold); font-size: 12.5px; color: #ddd5c4; }
+#now.on { display: block; }
+#now b { color: #fff3d6; font-weight: 600; }
+.tick { font: 400 10.5px var(--mono); color: var(--gold); opacity: .8; margin-top: 5px; letter-spacing: .05em; }
+.tick:empty { display: none; }
+#hint { position: fixed; left: 22px; bottom: 22px; font: 400 10px var(--mono); color: var(--faint); letter-spacing: .08em; pointer-events: none; }
+#err { position: fixed; inset: 0; display: none; place-items: center; text-align: center; font: 400 14px var(--mono); color: var(--gold); }
+@media (max-width: 1100px) { #left, #usage, #files { display: none; } #hint { display: none; } }
+@media (max-width: 760px) {
+  #right { left: 16px; right: 16px; width: auto; top: auto; bottom: 16px; max-height: 42%; }
+  #brand { left: 16px; } #brand h1 { font-size: 22px; }
+}
+/* intro: covers the scene build, then scrolling draws the brain as a wireframe and hands it to the render */
+#intro { position: fixed; inset: 0; z-index: 50; overflow: hidden; touch-action: none; }
+#intro .bg { position: absolute; inset: 0; background: radial-gradient(110% 85% at 50% 52%, #0e0b07 0%, var(--bg) 70%); will-change: transform; }
+#intro .bg::before { content: ''; position: absolute; left: -2px; top: 0; bottom: 0; width: 2px; background: #fff3d6; box-shadow: 0 0 18px 4px var(--gold), 0 0 70px 14px rgba(255, 106, 16, .45); opacity: 0; } /* the scan edge */
+#intro .fx { position: absolute; inset: 0; will-change: opacity; }
+#intro .sky, #intro .wire { position: absolute; inset: 0; width: 100%; height: 100%; }
+#intro .wire path { fill: none; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; }
+#intro .floor path { stroke: rgba(255, 181, 71, .14); stroke-width: 1; }
+#intro .floor path.ax-x { stroke: #ff3352; stroke-opacity: .5; }
+#intro .floor path.ax-z { stroke: #8bdc00; stroke-opacity: .5; }
+#intro .planets path { stroke: var(--c); stroke-opacity: .4; stroke-width: .9; }
+#intro .rings path { stroke: var(--c); stroke-opacity: .8; stroke-width: 1.1; }
+#intro .rings path.gl { stroke-width: 6; stroke-opacity: calc(.07 + var(--boost, 0) * .25); }
+#intro .rings path.pk { stroke-width: 2.6; stroke-opacity: 1; stroke-dasharray: .012 .988; }
+#intro .core path { stroke: var(--gold); stroke-width: 1.2; }
+#intro .frame { position: absolute; inset: 92px 22px 22px; pointer-events: none; }
+#intro .frame i { position: absolute; width: 22px; height: 22px; border: 0 solid rgba(255, 243, 214, .4); }
+#intro .frame i:nth-child(1) { left: 0; top: 0; border-left-width: 1px; border-top-width: 1px; }
+#intro .frame i:nth-child(2) { right: 0; top: 0; border-right-width: 1px; border-top-width: 1px; }
+#intro .frame i:nth-child(3) { left: 0; bottom: 0; border-left-width: 1px; border-bottom-width: 1px; }
+#intro .frame i:nth-child(4) { right: 0; bottom: 0; border-right-width: 1px; border-bottom-width: 1px; }
+/* camera rulers on both sides: they slide with the scroll like a viewport's altitude tape */
+#intro .ruler { position: absolute; top: 30%; height: 40%; width: 14px; overflow: hidden; -webkit-mask: linear-gradient(transparent, #000 25%, #000 75%, transparent); mask: linear-gradient(transparent, #000 25%, #000 75%, transparent); }
+#intro .ruler.l { left: 32px; } #intro .ruler.r { right: 32px; }
+#intro .ruler i { position: absolute; left: 0; right: 0; top: 0; height: 400%; background: repeating-linear-gradient(transparent 0 11px, rgba(255, 181, 71, .35) 11px 12px), repeating-linear-gradient(transparent 0 59px, rgba(255, 181, 71, .8) 59px 60px); will-change: transform; }
+#intro .ruler.l i { background-size: 6px 100%, 14px 100%; background-repeat: no-repeat; }
+#intro .ruler.r i { background-size: 6px 100%, 14px 100%; background-repeat: no-repeat; background-position: right top, right top; }
+#intro .ruler::after { content: ''; position: absolute; top: 50%; width: 14px; height: 1px; background: #fff3d6; box-shadow: 0 0 6px var(--gold); }
+#intro .tele, #intro .legend { position: absolute; top: 118px; font: 400 10px/1.9 var(--mono); letter-spacing: .14em; color: var(--dim); }
+#intro .tele { left: 56px; }
+#intro .tele b, #intro .legend .hd b { font-weight: 400; color: var(--gold); margin-left: 10px; }
+#intro .legend { right: 56px; text-align: right; }
+#intro .legend .hd { color: var(--dim); margin-bottom: 4px; }
+#intro .lg { display: flex; justify-content: flex-end; align-items: center; gap: 9px; color: var(--c); font-weight: 600; opacity: 0; transform: translateX(10px); transition: opacity .35s, transform .35s; }
+#intro .lg b { min-width: 22px; font-weight: 400; color: var(--text); }
+#intro .lg i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+#intro .lg.on { opacity: 1; transform: none; }
+#intro .mode { position: absolute; right: 22px; top: 22px; display: flex; align-items: center; gap: 10px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--panel); font: 400 10.5px var(--mono); letter-spacing: .08em; color: var(--dim); }
+#intro .mode b { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--gold); transition: background .3s, box-shadow .3s; }
+#intro .copy { position: absolute; left: 56px; bottom: 58px; }
+#intro .kicker { font: 400 10px var(--mono); letter-spacing: .3em; color: var(--dim); }
+#intro h2 { margin: 6px 0 10px; font: 600 clamp(44px, 8vw, 112px)/1 var(--mono); letter-spacing: .14em; color: transparent; -webkit-text-stroke: 1px #fff3d6; }
+#intro .stats { font: 400 11px var(--mono); color: var(--dim); letter-spacing: .06em; }
+#intro .status { position: absolute; right: 56px; bottom: 58px; display: flex; flex-direction: column; align-items: flex-end; gap: 9px; font: 600 10.5px var(--mono); letter-spacing: .22em; color: var(--gold); }
+#intro .pct { font: 300 46px/1 var(--mono); letter-spacing: .04em; color: #fff3d6; text-shadow: 0 0 22px rgba(255, 181, 71, .55); }
+#intro .bar { position: relative; width: 200px; height: 1px; background: var(--line); overflow: hidden; }
+#intro .bar i { position: absolute; inset: 0; background: var(--gold); box-shadow: 0 0 8px var(--gold); transform-origin: left; transform: scaleX(0); }
+#intro .bar.busy i { width: 40%; transform: translateX(-100%); animation: introSweep 1.1s ease-in-out infinite; } /* transform only, so it keeps moving while the scene builds */
+/* the "scroll down" cue: shows once the brain is ready, fades as soon as you scroll */
+#intro .cue { position: absolute; left: 50%; top: 68%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 12px; font: 600 11px var(--mono); letter-spacing: .32em; color: var(--gold); text-shadow: 0 0 14px rgba(255, 181, 71, .6); white-space: nowrap; opacity: 0; transition: opacity .6s; pointer-events: none; }
+#intro .cue.on { opacity: 1; }
+#intro .mouse { position: relative; width: 22px; height: 34px; border: 1.5px solid var(--gold); border-radius: 11px; box-shadow: 0 0 14px rgba(255, 181, 71, .35); }
+#intro .mouse::after { content: ''; position: absolute; left: 50%; top: 6px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: #fff3d6; animation: introWheel 1.6s ease-in-out infinite; }
+#intro .chev { width: 9px; height: 9px; margin-top: -8px; border: solid var(--gold); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); animation: introChev 1.6s ease-in-out infinite; }
+#intro .chev + .chev { animation-delay: .2s; }
+#intro .flash { position: absolute; inset: 0; background: radial-gradient(circle at var(--x) var(--y), rgba(255, 243, 214, .95), rgba(255, 181, 71, .4) 14%, rgba(255, 106, 16, .12) 34%, transparent 60%); opacity: 0; pointer-events: none; }
+#intro .shock { position: absolute; left: var(--x); top: var(--y); width: 40px; height: 40px; margin: -20px 0 0 -20px; border: 1px solid #fff3d6; border-radius: 50%; box-shadow: 0 0 12px var(--gold), inset 0 0 12px var(--gold); opacity: 0; pointer-events: none; }
+/* the hand-off: core flash and shockwave, a scan line wipes the wireframe off the render, then the lines fade */
+#intro.out .flash { animation: introFlash 1s ease-out both; }
+#intro.out .shock { animation: introShock 1.1s cubic-bezier(.2, .7, .3, 1) both; }
+#intro.out .shock + .shock { animation-delay: .14s; }
+#intro.out .bg { transform: translateX(101%); transition: transform 1.15s cubic-bezier(.7, 0, .25, 1) .15s; }
+#intro.out .bg::before { opacity: 1; }
+#intro.out .fx { opacity: 0; transition: opacity .7s ease .6s; }
+#intro.out .mode b { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+@keyframes introSweep { to { transform: translateX(250%); } }
+@keyframes introFlash { 12% { opacity: 1; } to { opacity: 0; } }
+@keyframes introShock { from { opacity: 1; transform: scale(.2); } to { opacity: 0; transform: scale(34); } }
+@keyframes introWheel { 70% { transform: translateY(11px); opacity: 0; } 100% { opacity: 0; } }
+@keyframes introChev { 0%, 100% { transform: translateY(-3px) rotate(45deg); opacity: .25; } 50% { transform: translateY(3px) rotate(45deg); opacity: 1; } }
+@media (max-width: 760px) { #intro .copy { left: 38px; bottom: 150px; } #intro .status { left: 38px; right: auto; align-items: flex-start; } #intro .tele, #intro .legend, #intro .ruler { display: none; } }
+@media (prefers-reduced-motion: reduce) { #intro .bar.busy i, #intro.out .flash, #intro.out .shock, #intro .mouse::after, #intro .chev { animation: none; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script src="data.js"></script>
+</head>
+<body>
+<div id="intro">
+  <div class="bg"></div>
+  <div class="fx">
+    <canvas class="sky"></canvas>
+    <svg class="wire"><g class="floor"></g><g class="planets"></g><g class="core"></g><g class="rings"></g></svg>
+    <div class="frame"><i></i><i></i><i></i><i></i></div>
+    <div class="ruler l"><i></i></div><div class="ruler r"><i></i></div>
+    <div class="tele"></div>
+    <div class="legend"><div class="hd">RINGS<b>0/7</b></div></div>
+    <div class="mode"><span>Wireframe</span><b></b></div>
+    <div class="copy">
+      <div class="kicker">CODEX · NEURAL MAP</div>
+      <h2>THE BRAIN</h2>
+      <div class="stats"></div>
+    </div>
+    <div class="cue"><div class="mouse"></div><i class="chev"></i><i class="chev"></i><span>SCROLL DOWN TO ENTER</span></div>
+    <div class="status"><span class="lbl2">BUILDING THE BRAIN</span><div class="bar busy"><i></i></div></div>
+  </div>
+  <div class="flash"></div><div class="shock"></div><div class="shock"></div>
+</div>
+<script>
+// Intro: covers the ~1.5 s the scene takes to build, then scrolling draws the brain as a wireframe
+// (floor, planets, core, rings, nodes, links) and flies the camera to the app's start view, so the render takes over exactly in place.
+window.boot = (() => {
+  const B = window.BRAIN, el = document.getElementById('intro');
+  let enter; const entered = new Promise(r => enter = r);
+  // the module waits for this, so the intro is on screen before the heavy build blocks the page
+  // (a hidden window gets no frames, so it builds straight away and is ready when you look)
+  const painted = new Promise(r => document.hidden ? setTimeout(r) : requestAnimationFrame(() => setTimeout(r)));
+  if (!B) { el.remove(); return { painted, entered, loaded() {} }; }
+  const $ = s => el.querySelector(s), NS = 'http://www.w3.org/2000/svg';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x, smooth = x => (x = clamp01(x)) * x * (3 - 2 * x);
+  const cnt = f => B.nodes.filter(f).length, kind = k => n => n.kind === k;
+  $('.stats').textContent = `${cnt(kind('skill'))} SKILLS · ${cnt(kind('agent'))} AGENTS · ${cnt(kind('tool'))} TOOLS · ${B.edges.length} LINKS`;
+
+  // the scene in 3D: same radii, tilts and members as LAYERS in the module below
+  const RINGS = [
+    [13, .32, .12, '#fff0cc', 'ALWAYS LOADED', kind('context')],
+    [20.4, -.16, .06, '#ffb547', 'YOUR SKILLS', n => n.kind === 'skill' && ['project', 'user', 'plugin'].includes(n.scope)],
+    [27.6, .1, -.14, '#b98a52', 'APP SKILLS', n => n.kind === 'skill' && ['app', 'builtin'].includes(n.scope)],
+    [34.8, .2, .2, '#ff6a3a', 'AGENTS', kind('agent')],
+    [42, -.08, -.1, '#6fd6ff', 'TOOLS', kind('tool')],
+    [48.8, .14, .04, '#b6ee7a', 'PLUGINS', kind('plugin')],
+    [56, -.05, .12, '#a9b6c8', 'FOLDERS', kind('storage')],
+  ].map(([r, tx, tz, color, name, test], i) => ({ r, tx, tz, color, name, members: B.nodes.filter(test), start: 0.36 + i * 0.07, end: 0.56 + i * 0.07, spin: 0.05 + 0.012 * (7 - i), f: 0 }));
+  const ringPt = (R, t) => { // tilt like three's Euler XYZ: Z first, then X
+    const x = Math.cos(t) * R.r, z = Math.sin(t) * R.r, y = x * Math.sin(R.tz);
+    return [x * Math.cos(R.tz), y * Math.cos(R.tx) - z * Math.sin(R.tx), y * Math.sin(R.tx) + z * Math.cos(R.tx)];
+  };
+  const paths = []; // { els, pts, start, end, R }
+  const add = (g, pts, start, end, cls, R, color) => {
+    const els = (R ? ['gl', '', 'pk'] : [cls]).map(c => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('pathLength', 1);
+      if (c) p.setAttribute('class', c);
+      if (R || color) p.style.setProperty('--c', R ? R.color : color);
+      $(g).appendChild(p);
+      return p;
+    });
+    paths.push({ els, pts, start, end, R });
+    return els[0];
+  };
+  const circle = (n, f) => Array.from({ length: n + 1 }, (_, i) => f(i / n * Math.PI * 2));
+  // a wireframe sphere: meridians and parallels, optionally tilted around Z, drawn between d = start and start + 0.3
+  const sphere = (g, c, r, start, color, tilt = 0, m = 8, seg = 48) => {
+    const at = (x, y, z) => [c[0] + x * Math.cos(tilt) - y * Math.sin(tilt), c[1] + x * Math.sin(tilt) + y * Math.cos(tilt), c[2] + z];
+    for (let k = 0; k < m; k++) { const a = k / m * Math.PI; add(g, circle(seg, t => at(r * Math.cos(t) * Math.cos(a), r * Math.sin(t), r * Math.cos(t) * Math.sin(a))), start + k * 0.012, start + 0.3 + k * 0.012, '', null, color); }
+    for (let k = 1; k < m - 1; k++) { const ph = -Math.PI / 2 + k / (m - 1) * Math.PI, rr = r * Math.cos(ph), y = r * Math.sin(ph); add(g, circle(seg, t => at(rr * Math.cos(t), y, rr * Math.sin(t))), start + 0.04 + k * 0.012, start + 0.34 + k * 0.012, '', null, color); }
+  };
+  for (let i = -12; i <= 12; i++) { // floor grid below the rings, X axis red and Z axis green like Blender, fading out to its edges
+    const s = Math.abs(i) * 0.006, o = (1 - Math.abs(i) / 13).toFixed(2);
+    add('.floor', [[i * 10, -20, -120], [i * 10, -20, 120]], s, 0.2 + s, i ? '' : 'ax-z').style.opacity = o;
+    add('.floor', [[-120, -20, i * 10], [120, -20, i * 10]], s, 0.2 + s, i ? '' : 'ax-x').style.opacity = o;
+  }
+  // the app's planets, same places and sizes, so they line up with the render too
+  sphere('.planets', [-140, 20, -190], 18, 0.1, '#ffb070', 0.35, 7, 40);
+  for (const rr of [24, 31, 38]) add('.planets', circle(96, t => { // the giant's ring: RingGeometry turned PI / 2.3 on X, inside the planet's Z tilt
+    const x = Math.cos(t) * rr, y = Math.sin(t) * rr * Math.cos(Math.PI / 2.3), z = Math.sin(t) * rr * Math.sin(Math.PI / 2.3);
+    return [-140 + x * Math.cos(0.35) - y * Math.sin(0.35), 20 + x * Math.sin(0.35) + y * Math.cos(0.35), -190 + z];
+  }), 0.22, 0.5, '', null, '#ffb070');
+  sphere('.planets', [170, -28, -120], 7.2, 0.2, '#6fd6ff', -0.2, 6, 32);
+  sphere('.planets', [84, 44, -240], 3.8, 0.26, '#ff7a4a', 0, 5, 24);
+  sphere('.planets', [-96, -52, 160], 5.2, 0.3, '#a9b6c8', 0.5, 6, 32);
+  sphere('.core', [0, 0, 0], 3, 0.16, null); // the core, where the brain sits
+
+  // nodes: evenly spaced on their ring, so the drawing line reaches them in order
+  const pos = { core: { P: [0, 0, 0], R: null, th: 0 } };
+  for (const R of RINGS) {
+    add('.rings', circle(128, t => ringPt(R, t)), R.start, R.end, '', R);
+    R.n = R.members.length;
+    R.nodes = R.members.map((n, k) => (pos[n.id] = { P: ringPt(R, k / R.n * Math.PI * 2 + 0.01), R, th: k / R.n }).P);
+    R.row = document.createElement('div'); R.row.className = 'lg'; R.row.style.setProperty('--c', R.color);
+    R.row.innerHTML = `${R.name}<b>${R.n}</b><i></i>`; $('.legend').appendChild(R.row);
+  }
+  const popped = q => !q.R || q.R.f >= q.th + 0.04;
+  // links: real edges as arcs bowed toward the core; each fires when both of its nodes are on screen
+  const links = B.edges.filter(e => pos[e[0]] && pos[e[1]] && e[0] !== e[1]).map(e => {
+    const a = pos[e[0]], b = pos[e[1]];
+    return { a, b, m: [(a.P[0] + b.P[0]) * 0.3, (a.P[1] + b.P[1]) * 0.3 + 4, (a.P[2] + b.P[2]) * 0.3], born: -1, ph: Math.random(), pulse: Math.random() < 0.35 };
+  });
+  // stars in a shell around the brain; they streak as the camera flies in
+  const stars = Array.from({ length: 420 }, () => {
+    const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, d = 320 + Math.random() * 600, s = Math.sqrt(1 - u * u);
+    return { p: [d * s * Math.cos(a), d * u, d * s * Math.sin(a)], b: 0.25 + Math.random() * 0.75, ph: Math.random() * 6.3, w: Math.random() < 0.12 ? 1.8 : 1 };
+  });
+  const NEB = [[[-320, 90, -520], '255,106,16', 0.13], [[360, -50, -460], '111,214,255', 0.07], [[60, 220, -640], '255,181,71', 0.09]]; // far haze
+
+  // camera: starts high, far and turned, and swoops onto the app's own start view (0, 46, 126) at the end
+  const R0 = Math.hypot(46, 126), EL0 = Math.atan2(46, 126), TAN = Math.tan(21 * Math.PI / 180);
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const norm = a => { const l = Math.hypot(...a); return [a[0] / l, a[1] / l, a[2] / l]; };
+  function cam(e) {
+    const u = reduced ? 0 : 1 - e, r = R0 * (1 + 1.1 * u), el = EL0 + 0.55 * u, az = -1.4 * u;
+    const eye = [r * Math.cos(el) * Math.sin(az), r * Math.sin(el), r * Math.cos(el) * Math.cos(az)];
+    const W = norm(sub([0, 0, 0], eye)), U = norm([-W[2], 0, W[0]]); // right = W x up
+    const V = [U[1] * W[2] - U[2] * W[1], U[2] * W[0] - U[0] * W[2], U[0] * W[1] - U[1] * W[0]];
+    const w = innerWidth, h = innerHeight; // same view offset as fitView() in the module
+    const ox = ((w > 760 ? 362 : 0) - (w > 1100 ? 280 : 0)) / 2, oy = w > 760 ? 0 : 160;
+    return { eye, U, V, W, w, h, ox, oy, r, el, az };
+  }
+  function proj(c, p) {
+    const d = sub(p, c.eye), z = dot(d, c.W);
+    if (z < 1) return null;
+    return [(dot(d, c.U) / (z * TAN * c.w / c.h) * 0.5 + 0.5) * c.w - c.ox, (0.5 - dot(d, c.V) / (z * TAN) * 0.5) * c.h - c.oy, z];
+  }
+  function pathOf(c, pts) {
+    let s = '', pen = false;
+    for (const p of pts) {
+      const q = proj(c, p);
+      if (!q) { pen = false; continue; }
+      s += (pen ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1);
+      pen = true;
+    }
+    return s;
+  }
+  function scramble(node, text, ms) { // decode-style text reveal
+    const ch = '01<>/\\|_+*#$%ABCDEFXZ', t0 = performance.now();
+    (function f(now) {
+      const k = clamp01((now - t0) / ms);
+      node.textContent = [...text].map((c, i) => c === ' ' || i / text.length < k ? c : ch[Math.random() * ch.length | 0]).join('');
+      if (k < 1) requestAnimationFrame(f);
+    })(t0);
+  }
+
+  const sky = $('.sky'), g = sky.getContext('2d'), svg = $('.wire'), floor = $('.floor'), h2 = $('h2');
+  const rulers = [...el.querySelectorAll('.ruler i')];
+  let target = 0, p = 0, t0 = 0, last = 0, geo = '', ready = false, done = false, c = null, pct = -1, tele = '';
+  function draw(now) {
+    const intro = reduced ? 1 : clamp01((now - t0) / 1400), e = smooth(p), vel = target - p, T = now / 1000;
+    const d = Math.max(smooth(intro) * 0.34, 0.34 + p * 0.66);
+    c = cam(e);
+    const key = e + ' ' + c.w + ' ' + c.h;
+    if (key !== geo) { // the camera moved: re-project every line
+      geo = key;
+      svg.setAttribute('viewBox', `0 0 ${c.w} ${c.h}`);
+      for (const q of paths) { const s = pathOf(c, q.pts); for (const x of q.els) x.setAttribute('d', s); }
+    }
+    for (const q of paths) {
+      const f = smooth((d - q.start) / (q.end - q.start)), off = (1 - f).toFixed(4);
+      q.els.forEach((x, i) => {
+        if (q.R && i === 2) { x.style.strokeDashoffset = (-T * q.R.spin % 1).toFixed(4); x.style.opacity = smooth((f - 0.9) / 0.1).toFixed(3); } // light pulses run along a finished ring
+        else x.style.strokeDashoffset = off;
+      });
+      if (q.R) q.R.f = f;
+    }
+    svg.style.setProperty('--boost', Math.min(1, Math.abs(vel) * 6).toFixed(3));
+    floor.style.opacity = (1 - 0.75 * smooth((p - 0.5) / 0.5)).toFixed(3);
+    const fill = smooth((p - 0.3) / 0.6); // the outline title fills in as the brain finishes drawing
+    h2.style.color = `rgba(255,243,214,${fill.toFixed(3)})`;
+    h2.style.textShadow = `0 0 ${(18 + fill * 22).toFixed(1)}px rgba(255,181,71,${(fill * 0.55).toFixed(3)})`;
+    $('.cue').classList.toggle('on', ready && target < 0.02);
+    const n = Math.round(p * 100);
+    if (n !== pct) { pct = n; $('.pct').textContent = String(n).padStart(3, '0'); $('.bar i').style.transform = `scaleX(${p.toFixed(3)})`; }
+
+    // rulers slide with the scroll, in opposite directions
+    rulers[0].style.transform = `translateY(${(-p * 75).toFixed(2)}%)`;
+    rulers[1].style.transform = `translateY(${(-(1 - p) * 75).toFixed(2)}%)`;
+    // ring list: a row lights up as its ring completes
+    let rings = 0;
+    for (const R of RINGS) { const on = R.f > 0.98; rings += on; R.row.classList.toggle('on', on); }
+    $('.legend .hd b').textContent = rings + '/7';
+
+    // canvas: haze, stars (streaking with the camera's speed), links firing, nodes popping onto the rings, the core's glow
+    const dpr = Math.min(devicePixelRatio, 1.5);
+    if (sky.width !== Math.round(c.w * dpr) || sky.height !== Math.round(c.h * dpr)) { sky.width = Math.round(c.w * dpr); sky.height = Math.round(c.h * dpr); }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, c.w, c.h);
+    g.globalCompositeOperation = 'lighter';
+    for (const [P, rgb, a] of NEB) {
+      const q = proj(c, P); if (!q) continue;
+      const rad = 260000 / q[2] * (0.9 + 0.1 * Math.sin(T * 0.7 + P[0])), al = a * smooth(intro) * (0.6 + 0.4 * p);
+      const gr = g.createRadialGradient(q[0], q[1], 0, q[0], q[1], rad);
+      gr.addColorStop(0, `rgba(${rgb},${al})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+      g.fillStyle = gr; g.fillRect(q[0] - rad, q[1] - rad, rad * 2, rad * 2);
+    }
+    const back = cam(smooth(clamp01(p - vel * 0.5))); // where the camera was a moment ago
+    g.lineCap = 'round';
+    for (const s of stars) {
+      const q = proj(c, s.p); if (!q) continue;
+      const a = s.b * (0.55 + 0.45 * Math.sin(T * 2 + s.ph)) * smooth(intro * 1.5);
+      const q0 = proj(back, s.p) || q, dx = q0[0] - q[0], dy = q0[1] - q[1], len = Math.hypot(dx, dy), k = len > 120 ? 120 / len : 1; // streak, capped
+      g.strokeStyle = `rgba(255,232,190,${(a / (1 + len * k / 60)).toFixed(3)})`; g.lineWidth = s.w;
+      g.beginPath(); g.moveTo(q[0] + dx * k, q[1] + dy * k); g.lineTo(q[0] + 0.01, q[1]); g.stroke();
+    }
+    let fired = 0;
+    g.lineWidth = 0.8;
+    for (const L of links) {
+      if (!popped(L.a) || !popped(L.b)) { L.born = -1; continue; }
+      const a = proj(c, L.a.P), b = proj(c, L.b.P), m = proj(c, L.m); if (!a || !b || !m) continue;
+      if (L.born < 0) L.born = T;
+      fired++;
+      const flare = Math.exp(-(T - L.born) * 2.2);
+      g.strokeStyle = `rgba(255,${181 + flare * 60 | 0},${71 + flare * 140 | 0},${(0.08 + 0.6 * flare).toFixed(3)})`;
+      g.beginPath(); g.moveTo(a[0], a[1]); g.quadraticCurveTo(m[0], m[1], b[0], b[1]); g.stroke();
+      if (L.pulse) { // a spark travelling along the link
+        const u = (T * 0.4 + L.ph) % 1, v = 1 - u;
+        const x = v * v * a[0] + 2 * u * v * m[0] + u * u * b[0], y = v * v * a[1] + 2 * u * v * m[1] + u * u * b[1];
+        g.fillStyle = 'rgba(255,236,190,.85)'; g.beginPath(); g.arc(x, y, 1.3, 0, 7); g.fill();
+      }
+    }
+    let nodes = 0;
+    for (const R of RINGS) {
+      if (!R.f) continue;
+      g.fillStyle = R.color;
+      R.nodes.forEach((P, k) => {
+        const th = k / R.n; if (R.f < th) return;
+        nodes++;
+        const q = proj(c, P); if (!q) return;
+        const pop = clamp01((R.f - th) * 9), s = 300 / q[2];
+        g.globalAlpha = 0.12 + 0.55 * (1 - pop); g.beginPath(); g.arc(q[0], q[1], s * (1.4 + 4 * (1 - pop)), 0, 7); g.fill(); // flash as the line reaches it
+        g.globalAlpha = 1; g.beginPath(); g.arc(q[0], q[1], s * 0.55, 0, 7); g.fill();
+      });
+    }
+    g.globalAlpha = 1;
+    const cq = proj(c, [0, 0, 0]);
+    if (cq) {
+      const rad = (60 + 140 * p) * (1 + 0.08 * Math.sin(T * 3)), a = 0.2 + 0.55 * p;
+      const gr = g.createRadialGradient(cq[0], cq[1], 0, cq[0], cq[1], rad);
+      gr.addColorStop(0, `rgba(255,243,214,${a})`); gr.addColorStop(0.18, `rgba(255,181,71,${a * 0.6})`); gr.addColorStop(0.5, `rgba(255,106,16,${a * 0.15})`); gr.addColorStop(1, 'rgba(255,106,16,0)');
+      g.fillStyle = gr; g.fillRect(cq[0] - rad, cq[1] - rad, rad * 2, rad * 2);
+    }
+    g.globalCompositeOperation = 'source-over';
+
+    // camera readout, counting down to the app's start view
+    const t = `DIST<b>${c.r.toFixed(1)}</b><br>ELEV<b>${(c.el * 180 / Math.PI).toFixed(1)}°</b><br>AZIM<b>${(c.az * 180 / Math.PI).toFixed(1)}°</b><br>NODES<b>${nodes}/${RINGS.reduce((a, R) => a + R.n, 0)}</b><br>LINKS<b>${fired}/${links.length}</b>`;
+    if (t !== tele) { tele = t; $('.tele').innerHTML = t; }
+  }
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    p += (target - p) * (1 - Math.exp(-dt * 8));
+    if (target === 1 && p > 0.996) p = 1;
+    draw(now);
+    if (p === 1) return finish();
+    requestAnimationFrame(loop);
+  }
+  function finish() { // Wireframe -> Rendered: core flash and shockwave, a scan line wipes to the render, then the lines fade
+    done = true;
+    const cq = proj(c, [0, 0, 0]) || [c.w / 2, c.h / 2];
+    el.style.setProperty('--x', cq[0] + 'px'); el.style.setProperty('--y', cq[1] + 'px');
+    $('.mode span').textContent = 'Rendered';
+    $('.lbl2').textContent = 'RENDERED';
+    enter();
+    el.classList.add('out');
+    setTimeout(() => el.style.display = 'none', 1500); // stays until then so wheel momentum doesn't zoom the camera
+  }
+  const push = d => { if (ready && !done) target = clamp01(target + d); };
+  el.addEventListener('wheel', ev => { ev.preventDefault(); push((ev.deltaMode ? ev.deltaY * 40 : ev.deltaY) / (innerHeight * 1.8)); }, { passive: false });
+  let ty = 0;
+  el.addEventListener('touchstart', ev => ty = ev.touches[0].clientY, { passive: true });
+  el.addEventListener('touchmove', ev => { const y = ev.touches[0].clientY; push((ty - y) / (innerHeight * 1.2)); ty = y; }, { passive: true });
+  addEventListener('keydown', ev => {
+    if (['ArrowDown', 'PageDown', ' ', 'Enter'].includes(ev.key)) push(0.2);
+    else if (['ArrowUp', 'PageUp'].includes(ev.key)) push(-0.2);
+  });
+
+  return {
+    painted, entered,
+    loaded() { // called by the module after its first render: everything heavy is done, so scrolling stays smooth
+      ready = true;
+      $('.status').innerHTML = '<span class="pct">000</span><span class="lbl2"></span><div class="bar"><i></i></div>';
+      scramble($('.lbl2'), 'RENDER · SCROLL TO ENTER', 700);
+      t0 = last = performance.now();
+      requestAnimationFrame(loop);
+    },
+  };
+})();
+</script>
+<canvas id="gl"></canvas>
+<div id="labels"></div>
+
+<header id="brand">
+  <div class="kicker">CODEX · NEURAL MAP</div>
+  <h1>THE BRAIN</h1>
+  <div class="sub" id="scanInfo"></div>
+  <canvas id="spectrum" width="240" height="30" title="Click to mute or unmute the music"></canvas>
+</header>
+
+<aside id="left" class="panel" data-title="LAYERS">
+  <div class="minbar"><button class="min"></button></div>
+  <div class="ph">LAYERS <span>click to hide</span></div>
+  <div id="layerList"></div>
+  <div class="ph">CONTROLS</div>
+  <label class="sl">Orbit speed <b id="spdv"></b><input type="range" id="spd" min="0" max="3" step="0.01" value="1.5"></label>
+  <label class="sl">Glow <b id="glwv"></b><input type="range" id="glw" min="0" max="2.5" step="0.01" value="0.6"></label>
+  <label class="sl">Aperture <b id="apv"></b><input type="range" id="ap" min="0" max="1" step="0.01" value="0.5"></label>
+  <label class="sl">Replay speed <b id="rspv"></b><input type="range" id="rsp" min="0.25" max="8" step="0.25" value="1"></label>
+  <label class="sl">Music volume <b id="volv"></b><input type="range" id="vol" min="0" max="100" step="1" value="31"></label>
+  <label class="chk"><input type="checkbox" id="allLbl"> Show every label</label>
+  <div class="ph">AT SESSION START <span>read before you type</span></div>
+  <div id="budget"></div>
+</aside>
+
+<aside id="files" class="panel mini" data-title="FILES">
+  <div class="minbar"><button class="min"></button></div>
+  <div class="ph">FILES <span>where Codex keeps things</span></div>
+  <div class="note" style="margin:0 0 6px">Everything Codex knows about you lives in one folder: .codex in your user folder (or CODEX_HOME if you set it).</div>
+  <details open><summary>1 · Inside .codex</summary>
+    <dl class="tree">
+      <dt>config.toml</dt><dd>Your settings: model, approvals, sandbox, MCP servers, plugins.</dd>
+      <dt>AGENTS.md</dt><dd>Your global instructions. Read at the start of every session.</dd>
+      <dt>skills\</dt><dd>Your skills, one folder each with a SKILL.md. Skills in .agents\skills (in your user folder) count too.</dd>
+      <dt>sessions\</dt><dd>One log file per conversation, sorted by date. HISTORY and LIVE read these.</dd>
+      <dt>memories\</dt><dd>Facts saved from past sessions, when memories are on.</dd>
+      <dt>rules\</dt><dd>Rules that allow, ask about or block shell commands.</dd>
+      <dt>auth.json</dt><dd>Your login. The Brain never reads it.</dd>
+    </dl>
+  </details>
+  <details><summary>2 · In each project</summary>
+    <dl class="tree">
+      <dt>AGENTS.md</dt><dd>Project instructions, read when Codex starts in that folder.</dd>
+      <dt>.agents\skills\</dt><dd>Skills that only exist in that project.</dd>
+      <dt>.codex\config.toml</dt><dd>Project settings that override your global ones.</dd>
+    </dl>
+  </details>
+</aside>
+
+<aside id="usage" class="panel mini" data-title="USAGE">
+  <div class="minbar"><button class="min"></button></div>
+  <div class="ph">USAGE</div>
+  <div id="usageBody"></div>
+</aside>
+
+<aside id="right" class="panel" data-title="DETAILS">
+  <div class="minbar"><button class="min"></button></div>
+  <div id="tabs"><button data-tab="overview" class="on">OVERVIEW</button><button data-tab="history">HISTORY</button><button data-tab="live" title="Watch Codex work in real time">LIVE<i class="livedot off" id="livedot"></i></button></div>
+  <div id="now"></div>
+  <div id="insp"></div>
+</aside>
+
+<div id="hint">DRAG TO ORBIT · SCROLL TO ZOOM (MORE NAMES APPEAR) · CLICK A NODE · ESC TO RESET</div>
+<div id="err">data.js is missing.<br>Double-click refresh.cmd in this folder first.</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeVertices, mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const B = window.BRAIN;
+if (!B) { document.getElementById('err').style.display = 'grid'; throw new Error('no data'); }
+await boot.painted; // show the intro before the build below blocks the page
+
+// ---------------- layers (rings) ----------------
+const LAYERS = [
+  { key: 'context', name: 'Always loaded', color: '#fff0cc', r: 13, tilt: [0.32, 0, 0.12], speed: 0.16, label: true,
+    test: n => n.kind === 'context', geo: () => mergeGeometries([new THREE.TetrahedronGeometry(0.22), new THREE.TetrahedronGeometry(0.22).rotateY(Math.PI / 2)]), size: 1, // star of two pyramids
+    what: 'Rules and notes I read at the start of every conversation, before you type anything.' },
+  { key: 'skills', name: 'Your skills', color: '#ffb547', r: 20.4, tilt: [-0.16, 0, 0.06], speed: -0.07, label: n => n.scope !== 'plugin',
+    test: n => n.kind === 'skill' && ['project', 'user', 'plugin'].includes(n.scope), geo: () => new THREE.LatheGeometry([[0, -0.2], [0.2, 0.02], [0.13, 0.11], [0, 0.11]].map(([x, y]) => new THREE.Vector2(x, y)), 8), size: 1, // cut diamond
+    what: 'Recipes stored as SKILL.md files. I only see their descriptions until one matches your request.' },
+  { key: 'appskills', name: 'App skills', color: '#b98a52', r: 27.6, tilt: [0.1, 0, -0.14], speed: 0.045, label: false,
+    test: n => n.kind === 'skill' && ['app', 'builtin'].includes(n.scope), geo: () => new THREE.LatheGeometry([[0, -0.21], [0.1, -0.11], [0.1, 0.11], [0, 0.21]].map(([x, y]) => new THREE.Vector2(x, y)), 6), size: 0.65, // quartz crystal
+    what: 'Skills that come with Codex (skill creator, skill installer...).' },
+  { key: 'agents', name: 'Agents', color: '#ff6a3a', r: 34.8, tilt: [0.2, 0, 0.2], speed: -0.035, label: true,
+    test: n => n.kind === 'agent', geo: () => new THREE.IcosahedronGeometry(0.28, 0), size: 1.3,
+    what: 'Helper agents with their own fresh context. I hand them a brief, they hand back a summary.' },
+  { key: 'tools', name: 'Tools & programs', color: '#6fd6ff', r: 42, tilt: [-0.08, 0, -0.1], speed: 0.025, label: true,
+    test: n => n.kind === 'tool', geo: () => new THREE.TorusGeometry(0.17, 0.055, 8, 22), size: 1,
+    what: 'My hands: files and shell, web search, and connectors (MCP).' },
+  { key: 'ext', name: 'Plugins & guards', color: '#b6ee7a', r: 48.8, tilt: [0.14, 0, 0.04], speed: -0.02, label: true,
+    test: n => n.kind === 'plugin', geo: () => { // bevelled 5-point star
+      const sh = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + Math.PI / 2, r = i % 2 ? 0.11 : 0.25; sh[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); }
+      return new THREE.ExtrudeGeometry(sh, { depth: 0.07, bevelThickness: 0.03, bevelSize: 0.025, bevelSegments: 1 }).center(); }, size: 1,
+    what: 'Installed plugins, plus the safety guards (approvals, sandbox, command rules, hooks).' },
+  { key: 'storage', name: 'Codex folders', color: '#a9b6c8', r: 56, tilt: [-0.05, 0, 0.12], speed: 0.014, label: true,
+    test: n => n.kind === 'storage', geo: () => mergeGeometries([-0.1, 0, 0.1].map(y => new THREE.CylinderGeometry(0.18, 0.18, 0.07, 10).translate(0, y, 0))), size: 1.1, // stack of disks
+    what: 'Folders inside .codex. Never loaded automatically; opened only when a task needs them.' },
+];
+const KIND_NAME = { context: 'ALWAYS LOADED', skill: 'SKILL', agent: 'AGENT', tool: 'TOOL', plugin: 'PLUGIN', storage: 'FOLDER', core: 'CORE' };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtTok = t => t >= 1000 ? (t / 1000).toFixed(1) + 'k' : String(t || 0);
+
+// ---------------- renderer / scene ----------------
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#050403');
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 1400);
+camera.position.set(0, 46, 126);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.minDistance = 5; controls.maxDistance = 260; controls.enablePan = false;
+scene.add(new THREE.AmbientLight('#ffe2b0', 0.15));
+const key = new THREE.PointLight('#ffb547', 60, 60, 1.6); scene.add(key);
+const rim = new THREE.DirectionalLight('#9fc8ff', 0.7); rim.position.set(-8, 6, -10); scene.add(rim);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.0, 0.5, 0.3);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function glowTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.18, 'rgba(255,255,255,.55)');
+  grd.addColorStop(0.5, 'rgba(255,255,255,.12)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const GLOW = glowTexture();
+const GRAY = new THREE.Color('#3b3936'), GRAY_BADGE = new THREE.Color('#77736d');
+const NS = 1.9; // node size multiplier
+
+// ---------------- an emoji for every element, so you can tell at a glance what it does ----------------
+const ICONS = {
+  // always loaded
+  'Global rules': '📜', 'Agentic OS CLAUDE.md': '🗺️', 'Lessons': '🎓', 'Auto memory': '🧠',
+  // your skills
+  'blender-scene': '🧊', 'blender-animate': '🎞️', 'blender-render': '📸', 'video-edit': '✂️', 'remotion-best-practices': '🎬',
+  'youtube-summary': '📺', 'wrap-up': '📝', 'handoff': '🤝',
+  // Blender developer plugin skills
+  'addon-scaffolding': '🏗️', 'ai-mesh-cleanup': '🧹', 'bake-high-to-low': '🔥', 'bl-info-migration': '🚚', 'custom-properties': '🏷️',
+  'depsgraph-and-evaluated-data': '🕸️', 'drivers-and-app-handlers': '🎛️', 'engine-export-presets': '🎮', 'extension-runtime-and-packaging': '📦',
+  'geometry-nodes-python': '🔷', 'headless-batch-scripting': '🤖', 'mesh-editing-and-bmesh': '🔺', 'operators': '⚙️',
+  'procedural-materials-and-shaders': '🎨', 'slotted-actions-animation': '🎚️', 'timers-modal-and-threading': '⏱️', 'ui-panels': '🪟',
+  'vse-python': '🎥', 'blender-rules': '📏',
+  // app skills
+  'docs': '📄', 'docx': '📘', 'pdf': '📕', 'pptx': '📊', 'xlsx': '📗', 'deep-research': '🔬', 'skill-creator': '🛠️', 'schedule': '⏰',
+  'built-in-browser': '🌐', 'chrome-browser': '🧭', 'computer-use': '🖱️', 'artifact-design': '🖼️', 'dataviz': '📈', 'code-review': '🔍',
+  'simplify': '✨', 'security-review': '🛡️', 'loop': '🔁', 'update-config': '🔧', 'claude-api': '🔌', 'plugin-authoring': '🧩',
+  'google-workspace': '🗂️', 'import-memory': '📥', 'morning': '☀️', 'consolidate-memory': '🗃️', 'explain-usage': '📉',
+  // agents
+  'app-aso': '📣', 'app-design': '🖌️', 'app-product': '📋', 'app-qa': '🐞', 'render-critic': '🧐',
+  'Explore': '🔭', 'Plan': '📐', 'general-purpose': '🦾', 'claude-code-guide': '📖',
+  // tools and programs
+  'blender MCP': '🕹️', 'Files & shell': '💻', 'Web search & fetch': '🔎', 'Built-in browser': '🌐', 'Claude in Chrome': '🧭',
+  'Dart / Flutter MCP': '🎯', 'Blender 5.2': '🌀', 'ffmpeg': '🎞️', 'Whisper': '🗣️', 'yt-dlp': '⬇️', 'auto-editor': '⏩', 'Flutter + Android SDK': '📱',
+  // plugins and guards
+  'blender-developer-tools': '🧰', 'task-eta': '⏳', 'context-pane': '🗒️', 'miniclaude': '👾', 'Secret guard hook': '🔒', 'Permissions': '🛂',
+  // folders
+  'projects/': '📁', 'outbox/': '📤', 'logs/': '📓', 'context/': '🧾', 'wiki/': '📚', 'vendor/': '🧳', 'tools/': '🔨', 'downloads/': '📥',
+  // Codex edition
+  'AGENTS.md': '📜', 'Memories': '🧠', 'Web search': '🔎', 'Approvals & sandbox': '🛂', 'Command rules': '📏', 'Hooks': '🪝',
+  'sessions/': '🗂️', 'archived_sessions/': '🗄️', 'skills/': '⚡', 'memories/': '🧠', 'plugins/': '🧩', 'rules/': '📏', 'log/': '📓', 'default': '🦾', 'worker': '🛠️', 'explorer': '🔭',
+};
+const KIND_ICON = { context: '📜', skill: '⚡', agent: '🤖', tool: '🔧', plugin: '🧩', storage: '📁' };
+const iconFor = d => ICONS[d.name] || ICONS[d.name.split(':').pop()] || KIND_ICON[d.kind] || '•';
+const badgeCache = {};
+function badgeTexture(icon) {
+  if (badgeCache[icon]) return badgeCache[icon];
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  g.shadowColor = 'rgba(0, 0, 0, 0.9)'; g.shadowBlur = 10; // keeps the emoji readable against the glass
+  g.font = '76px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(icon, 64, 70);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return (badgeCache[icon] = t);
+}
+const glowSprite = (color, scale, opacity) => {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
+  s.scale.setScalar(scale); return s;
+};
+
+// ---------------- the core: a black brain with a glowing orange half, like the app icon ----------------
+const core = new THREE.Group(); scene.add(core);
+core.scale.setScalar(1.7);
+// seeded Perlin noise, so the folds look the same on every load
+const PERM = new Uint8Array(512);
+{
+  const p = [...Array(256).keys()]; let s = 7;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 255; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+  for (let i = 0; i < 512; i++) PERM[i] = p[i & 255];
+}
+function noise3(x, y, z) {
+  const X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+  x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+  const f = t => t * t * t * (t * (t * 6 - 15) + 10), u = f(x), v = f(y), w = f(z);
+  const gr = (h, x, y, z) => { h &= 15; const a = h < 8 ? x : y, b = h < 4 ? y : h === 12 || h === 14 ? x : z; return ((h & 1) ? -a : a) + ((h & 2) ? -b : b); };
+  const L = (t, a, b) => a + t * (b - a);
+  const A = PERM[X] + Y, AA = PERM[A] + Z, AB = PERM[A + 1] + Z, B1 = PERM[X + 1] + Y, BA = PERM[B1] + Z, BB = PERM[B1 + 1] + Z;
+  return L(w, L(v, L(u, gr(PERM[AA], x, y, z), gr(PERM[BA], x - 1, y, z)), L(u, gr(PERM[AB], x, y - 1, z), gr(PERM[BB], x - 1, y - 1, z))),
+    L(v, L(u, gr(PERM[AA + 1], x, y, z - 1), gr(PERM[BA + 1], x - 1, y, z - 1)), L(u, gr(PERM[AB + 1], x, y - 1, z - 1), gr(PERM[BB + 1], x - 1, y - 1, z - 1))));
+}
+const BR = 1.75; // brain radius (core units)
+const brainGeo = (() => {
+  let g = new THREE.SphereGeometry(1, 560, 380); // dense enough for the fine grooves and grain
+  g.deleteAttribute('uv'); g.deleteAttribute('normal'); g = mergeVertices(g);
+  const pos = g.attributes.position, n = pos.count, col = new Float32Array(n * 3), glow = new Float32Array(n), d = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    d.fromBufferAttribute(pos, i).normalize();
+    // folds: warped noise, narrow grooves where it crosses zero, rounded ridges between
+    const wx = noise3(d.x * 1.7 + 5, d.y * 1.7, d.z * 1.7), wy = noise3(d.x * 1.7, d.y * 1.7 + 9, d.z * 1.7), wz = noise3(d.x * 1.7, d.y * 1.7, d.z * 1.7 + 13);
+    const n1 = noise3(d.x * 3.6 + wx * 1.3, d.y * 3.6 + wy * 1.3, d.z * 3.6 + wz * 1.3);
+    const n2 = noise3(d.x * 7.5 + wy, d.y * 7.5 + wz, d.z * 7.5 + wx);
+    const n3 = noise3(d.x * 16 + wz * 0.6, d.y * 16 + wx * 0.6, d.z * 16 + wy * 0.6); // small grooves on each fold
+    const e = x => { x = Math.min(1, x); return x * (2 - x); };
+    const h = e(Math.abs(n1) / 0.2) * (0.6 + 0.4 * e(Math.abs(n2) / 0.16)) * (0.82 + 0.18 * e(Math.abs(n3) / 0.18));
+    const scale = noise3(d.x * 30, d.y * 30, d.z * 30) * 0.5 + 0.5; // fine scaly grain
+    // orange half on +x, split from the black half by a deep wavy fissure
+    const side = d.x + 0.16 * noise3(d.x * 2.5 + 3, d.y * 2.5, d.z * 2.5) - 0.3;
+    const fissure = Math.exp(-((side / 0.035) ** 2));
+    pos.setXYZ(i, ...d.multiplyScalar(BR * (1 + 0.065 * h + 0.012 * scale - 0.07 * fissure)).toArray());
+    const o = side > 0, k = h * (1 - fissure);
+    if (o) col.set([0.2 + 0.8 * k, 0.05 + 0.37 * k, 0.005 + 0.05 * k], i * 3);
+    else { const c = 0.008 + 0.09 * k * (0.55 + 0.45 * scale); col.set([c, c * 1.12, c * 1.4], i * 3); }
+    glow[i] = o ? (0.05 + 0.95 * k * k) * (1 - fissure) : 0;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setAttribute('glow', new THREE.BufferAttribute(glow, 1));
+  g.computeVertexNormals();
+  return g;
+})();
+const brainGlow = { value: 1 };
+const brainMat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.25, roughness: 0.38, envMapIntensity: 0.3, emissive: '#ff6a10' });
+brainMat.onBeforeCompile = s => {
+  s.uniforms.uGlow = brainGlow;
+  s.vertexShader = 'attribute float glow;\nvarying float vGlow;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvGlow = glow;');
+  s.fragmentShader = 'varying float vGlow;\nuniform float uGlow;\n' + s.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance *= vGlow * uGlow;');
+};
+const heart = new THREE.Mesh(brainGeo, brainMat); core.add(heart);
+const heartGlow = glowSprite('#ff7a1a', 7, 0.55); core.add(heartGlow);
+// the icon's ring: a bundle of thin glowing strands swirling around the brain
+const brainRing = new THREE.Group(); scene.add(brainRing);
+brainRing.scale.setScalar(1.7);
+brainRing.rotation.set(Math.PI / 2 + 0.42, 0, -0.28);
+const ringSpin = new THREE.Group(); brainRing.add(ringSpin);
+const strands = [];
+for (let i = 0; i < 18; i++) {
+  const f = i / 17, r = 2.25 + 0.8 * f, ph = i * 2.4, pts = [];
+  for (let j = 0; j <= 240; j++) {
+    const a = j / 240 * Math.PI * 2, rr = r + 0.07 * Math.sin(2 * a + ph) + 0.03 * Math.sin(5 * a + ph * 1.7);
+    pts.push(new THREE.Vector3(Math.cos(a) * rr, Math.sin(a) * rr, 0.05 * Math.sin(3 * a + ph)));
+  }
+  const m = new THREE.LineBasicMaterial({ color: new THREE.Color().setHSL(0.07 + 0.05 * Math.random(), 1, 0.5 + 0.2 * Math.random()), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+  const op = (0.25 + 0.75 * Math.sin(f * Math.PI)) * (0.5 + 0.5 * Math.random());
+  const l = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), m); l.userData = { op }; ringSpin.add(l); strands.push(l);
+}
+{ // soft haze under the strands
+  const c = document.createElement('canvas'); c.width = 256; c.height = 4; const g = c.getContext('2d');
+  for (let x = 0; x < 256; x++) { const a = Math.sin(x / 255 * Math.PI) ** 2 * (0.5 + 0.5 * Math.abs(Math.sin(x * 0.09))); g.fillStyle = `rgba(255,140,40,${a})`; g.fillRect(x, 0, 1, 4); }
+  const rg = new THREE.RingGeometry(2.15, 3.15, 160, 1), uv = rg.attributes.uv, ps = rg.attributes.position;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, (Math.hypot(ps.getX(i), ps.getY(i)) - 2.15) / 1.0, 0.5);
+  const haze = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.12, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+  ringSpin.add(haze);
+}
+// tick ring like a HUD dial
+{
+  const pts = [];
+  for (let i = 0; i < 120; i++) {
+    const a = i / 120 * Math.PI * 2, l = i % 10 === 0 ? 0.22 : 0.08;
+    pts.push(Math.cos(a) * 3.05, 0, Math.sin(a) * 3.05, Math.cos(a) * (3.05 + l), 0, Math.sin(a) * (3.05 + l));
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  core.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: '#ffb547', transparent: true, opacity: 0.35 })));
+}
+// faint dust for depth, drifting slowly
+const dust = new THREE.Group(); scene.add(dust);
+{
+  const n = 700, p = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const r = 30 + Math.random() * 80, a = Math.random() * 6.283, y = (Math.random() - 0.5) * 60; p.set([Math.cos(a) * r, y, Math.sin(a) * r], i * 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  dust.add(new THREE.Points(g, new THREE.PointsMaterial({ color: '#8a6a3a', size: 0.06, transparent: true, opacity: 0.5 })));
+}
+
+// ---------------- backdrop: stars, nebulae, planets (decoration only) ----------------
+const skyTime = { value: 0 }, streakScale = { value: 1 }; // shared shader clocks, set every frame
+// A line that carries light pulses along it, like the intro's rings. u runs 0..1 along the points; a pulse sits where
+// fract(u * n - time * speed - head) wraps, with a fading trail behind it.
+function pulseLine(pts, color, { n = 4, speed = 0, base = 0, trail = 0.12, opacity = 0.9 } = {}) {
+  const g = new THREE.BufferGeometry().setFromPoints(pts);
+  g.setAttribute('aU', new THREE.Float32BufferAttribute(pts.map((_, i) => i / (pts.length - 1)), 1));
+  return new THREE.Line(g, new THREE.ShaderMaterial({
+    uniforms: { uTime: skyTime, uHead: { value: 0 }, uColor: { value: new THREE.Color(color) }, uN: { value: n }, uSpeed: { value: speed }, uBase: { value: base }, uTrail: { value: trail }, uOp: { value: opacity } },
+    vertexShader: `attribute float aU; varying float vU;
+      void main() { vU = aU; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float uTime, uHead, uN, uSpeed, uBase, uTrail, uOp; uniform vec3 uColor; varying float vU;
+      void main() { float f = fract(vU * uN - uTime * uSpeed - uHead); float a = uBase + smoothstep(1.0 - uTrail, 1.0, f) * uOp; gl_FragColor = vec4(uColor * (1.0 + a), a); }`,
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+}
+// Streaks that light up, run and fade, then come back somewhere new: falling stars, or one slow comet.
+// Everything moves in the shader, so they cost one draw call and no per-frame JavaScript.
+function streaks(count, trail, o) {
+  const n = count * trail, aId = new Float32Array(n), aK = new Float32Array(n), aPer = new Float32Array(n * 2);
+  for (let i = 0; i < count; i++) {
+    const P = o.period[0] + Math.random() * (o.period[1] - o.period[0]), ph = o.phase ?? Math.random() * P;
+    for (let j = 0; j < trail; j++) { const v = i * trail + j; aId[v] = i + 1; aK[v] = j / (trail - 1); aPer.set([P, ph], v * 2); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); // real positions come from the shader
+  g.setAttribute('aId', new THREE.BufferAttribute(aId, 1)); g.setAttribute('aK', new THREE.BufferAttribute(aK, 1)); g.setAttribute('aPer', new THREE.BufferAttribute(aPer, 2));
+  const pts = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: { uTime: skyTime, uScale: streakScale, map: { value: GLOW }, uLife: { value: o.life }, uSpeed: { value: o.speed }, uTail: { value: o.tail },
+      uSize: { value: o.size }, uR: { value: o.r }, uFall: { value: o.fall }, uBias: { value: new THREE.Vector3(...o.bias) }, cHead: { value: new THREE.Color(o.c0) }, cTail: { value: new THREE.Color(o.c1) } },
+    vertexShader: `attribute float aId; attribute float aK; attribute vec2 aPer;
+      uniform float uTime, uScale, uLife, uSpeed, uTail, uSize, uR, uFall; uniform vec3 uBias;
+      varying float vA; varying float vK;
+      float h(float n) { return fract(sin(n) * 43758.5453); }
+      void main() {
+        float lt = mod(uTime + aPer.y, aPer.x), s = aId * 17.13 + floor((uTime + aPer.y) / aPer.x) * 3.71; // new path every cycle
+        vec3 a = normalize(vec3(h(s) - 0.5, h(s + 1.0) * 0.7 - 0.15, h(s + 2.0) - 0.5) + uBias); // bias: toward the default view
+        vec3 dir = normalize(normalize(cross(a, vec3(0.0, 1.0, 0.0))) * sign(h(s + 3.0) - 0.5) + vec3(0.0, -uFall, 0.0));
+        vec3 p = a * uR + dir * uSpeed * max(lt - aK * uTail, 0.0); // the tail is the head's path a moment ago
+        vA = step(lt, uLife) * step(aK * uTail, lt) * (1.0 - aK) * sin(clamp(lt / uLife, 0.0, 1.0) * 3.14159);
+        vK = aK;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_Position = projectionMatrix * mv;
+        gl_PointSize = uSize * (1.0 - 0.7 * aK) * uScale / max(-mv.z, 1.0);
+      }`,
+    fragmentShader: `uniform sampler2D map; uniform vec3 cHead, cTail; varying float vA; varying float vK;
+      void main() { gl_FragColor = vec4(mix(cHead, cTail, vK), texture2D(map, gl_PointCoord).a * vA); }`,
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  }));
+  pts.frustumCulled = false; scene.add(pts);
+}
+streaks(30, 28, { period: [5, 13], life: 1.1, speed: 240, tail: 0.16, size: 7, r: 360, fall: 0.6, bias: [0, -0.1, -0.45], c0: '#fff3d6', c1: '#ff8a3a' }); // falling stars
+streaks(1, 180, { period: [80, 80], phase: 0, life: 34, speed: 16, tail: 6, size: 16, r: 470, fall: 0.15, bias: [0, -0.3, -1.6], c0: '#e8f6ff', c1: '#6fd6ff' }); // a comet
+// each star twinkles on its own clock
+const twinkle = s => {
+  s.uniforms.uTime = skyTime;
+  s.vertexShader = 'attribute float aPh; uniform float uTime; varying float vTw;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vTw = 0.55 + 0.45 * sin(uTime * (0.8 + fract(aPh * 7.3) * 2.2) + aPh);');
+  s.fragmentShader = 'varying float vTw;\n' + s.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.a *= vTw;');
+};
+for (const [count, size, rMin, rMax, op] of [[5000, 1.1, 300, 640, 0.75], [900, 2.6, 260, 600, 0.9], [160, 5.2, 240, 520, 1]]) {
+  const p = new Float32Array(count * 3), c = new Float32Array(count * 3);
+  const tints = [[1, 1, 1], [1, 0.86, 0.62], [0.7, 0.85, 1], [1, 0.72, 0.5]];
+  for (let i = 0; i < count; i++) {
+    const v = new THREE.Vector3().randomDirection().multiplyScalar(rMin + Math.random() * (rMax - rMin));
+    p.set([v.x, v.y, v.z], i * 3);
+    const t = tints[Math.random() * tints.length | 0], b = 0.4 + Math.random() * 0.6;
+    c.set([t[0] * b, t[1] * b, t[2] * b], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3)); g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  g.setAttribute('aPh', new THREE.BufferAttribute(Float32Array.from({ length: count }, () => Math.random() * 6.283), 1));
+  const m = new THREE.PointsMaterial({ size, map: GLOW, vertexColors: true, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false });
+  m.onBeforeCompile = twinkle;
+  scene.add(new THREE.Points(g, m));
+}
+const nebulae = []; // they breathe and turn slowly
+for (const [color, pos, scale, op] of [['#5a2a12', [-320, 80, -440], 520, 0.22], ['#24124a', [380, -60, -320], 600, 0.2], ['#0f3346', [80, 180, 460], 560, 0.16]]) {
+  const s = glowSprite(color, scale, op); s.position.set(...pos); scene.add(s);
+  nebulae.push({ s, op, ph: Math.random() * 6.283 });
+}
+// a far spiral galaxy in the empty sky above the rings, turning slowly
+const galaxy = new THREE.Group(); galaxy.position.set(10, -30, -480); galaxy.rotation.set(1.05, 0, 0.45); scene.add(galaxy);
+const galaxySpin = (() => {
+  const n = 2600, p = new Float32Array(n * 3), c = new Float32Array(n * 3), col = new THREE.Color();
+  const inner = new THREE.Color('#ffe2b0'), outer = new THREE.Color('#8fa8ff'), ember = new THREE.Color('#ff7a3a');
+  for (let i = 0; i < n; i++) {
+    const r = Math.pow(Math.random(), 0.7) * 70, a = (i % 2) * Math.PI + r * 0.075 + (Math.random() - 0.5) * (0.5 + 12 / (r + 4)); // two arms
+    p.set([Math.cos(a) * r, (Math.random() - 0.5) * (6 - r * 0.06), Math.sin(a) * r], i * 3);
+    col.copy(inner).lerp(Math.random() < 0.15 ? ember : outer, Math.min(1, r / 60)).multiplyScalar(0.5 + Math.random() * 0.5);
+    c.set([col.r, col.g, col.b], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3)); g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 2.2, map: GLOW, vertexColors: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
+  galaxy.add(pts); galaxy.add(glowSprite('#ffd9a0', 46, 0.35));
+  return pts;
+})();
+
+function canvasTex(draw, w = 512, h = 256) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const bands = (cols) => (g, w, h) => {
+  for (let y = 0; y < h; y++) {
+    const k = 0.5 + 0.5 * Math.sin(y * 0.11) * Math.sin(y * 0.031 + 1.7) + (Math.random() - 0.5) * 0.15;
+    const a = cols[Math.min(cols.length - 1, Math.max(0, k * cols.length | 0))];
+    g.fillStyle = a; g.fillRect(0, y, w, 1);
+  }
+  for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`; g.fillRect(Math.random() * w, Math.random() * h, 20 + Math.random() * 60, 1 + Math.random() * 2); }
+};
+const rocky = (base, spot) => (g, w, h) => {
+  g.fillStyle = base; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 260; i++) {
+    const r = 2 + Math.random() * 18; g.fillStyle = spot.replace('A', (0.08 + Math.random() * 0.25).toFixed(2));
+    g.beginPath(); g.arc(Math.random() * w, Math.random() * h, r, 0, 6.283); g.fill();
+  }
+};
+// Lit by the core as if it were the sun: simple diffuse + atmosphere rim.
+const planetMat = (map, atm) => new THREE.ShaderMaterial({
+  uniforms: { map: { value: map }, atm: { value: new THREE.Color(atm) } },
+  vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+    void main() { vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+  fragmentShader: `uniform sampler2D map; uniform vec3 atm; varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+    void main() {
+      vec3 n = normalize(vN); float d = max(dot(n, normalize(-vW)), 0.0);
+      float rim = pow(1.0 - max(dot(n, normalize(cameraPosition - vW)), 0.0), 3.0);
+      vec3 c = texture2D(map, vUv).rgb * (0.03 + d * 1.15) + atm * rim * (0.15 + d * 0.9);
+      gl_FragColor = vec4(c, 1.0);
+    }`,
+});
+const planets = [];
+function planet(r, pos, map, atm, spin, tilt = 0) {
+  const g = new THREE.Group(); g.position.set(...pos); g.rotation.z = tilt; scene.add(g);
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 64, 40), planetMat(map, atm)); g.add(m);
+  planets.push({ m, spin }); return g;
+}
+{
+  const giant = planet(18, [-140, 20, -190], canvasTex(bands(['#3b2412', '#6d4420', '#a8743a', '#d9b27a', '#8a5a2c', '#4a2e16'])), '#ffb070', 0.03, 0.35);
+  const ringTex = canvasTex((g, w, h) => {
+    for (let x = 0; x < w; x++) { const a = (0.15 + 0.6 * Math.abs(Math.sin(x * 0.07) * Math.sin(x * 0.013))) * (x > w * 0.08 ? 1 : 0); g.fillStyle = `rgba(230,190,130,${a})`; g.fillRect(x, 0, 1, h); }
+  }, 512, 4);
+  const rg = new THREE.RingGeometry(24, 38, 128, 1);
+  const uv = rg.attributes.uv, ps = rg.attributes.position;
+  for (let i = 0; i < uv.count; i++) { const l = Math.hypot(ps.getX(i), ps.getY(i)); uv.setXY(i, (l - 24) / 14, 0.5); }
+  const ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, side: THREE.DoubleSide, depthWrite: false, opacity: 0.55 }));
+  ring.rotation.x = Math.PI / 2.3; giant.add(ring);
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(2.6, 32, 20), planetMat(canvasTex(rocky('#8d8a84', 'rgba(30,28,26,A)')), '#ffffff'));
+  const trail = pulseLine(Array.from({ length: 161 }, (_, i) => { const a = i / 160 * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * 52, Math.sin(a) * 3, Math.sin(a) * 52); }),
+    '#ffd9a0', { n: 1, base: 0.05, trail: 0.3, opacity: 0.7 }); // its orbit, lit up behind the moon
+  giant.add(moon, trail); planets.push({ m: moon, spin: 0.1, orbit: { r: 52, speed: 0.06, a: 1 }, trail });
+  planet(7.2, [170, -28, -120], canvasTex(bands(['#0e2a3a', '#1f5a72', '#5fb3c9', '#bfe8f0', '#2f7f99'])), '#6fd6ff', 0.05, -0.2);
+  planet(3.8, [84, 44, -240], canvasTex(rocky('#6a2a18', 'rgba(20,6,2,A)')), '#ff7a4a', 0.08);
+  planet(5.2, [-96, -52, 160], canvasTex(rocky('#4a4f5a', 'rgba(220,225,235,A)')), '#a9b6c8', 0.04, 0.5);
+}
+
+// ---------------- nodes on rings ----------------
+const labelsEl = document.getElementById('labels');
+const nodes = [];         // view objects
+const byId = {};
+const hitMeshes = [];
+const CORE = { d: B.nodes.find(n => n.id === 'core'), isCore: true, act: 0, target: 0, world: new THREE.Vector3() };
+byId.core = CORE;
+
+for (const L of LAYERS) {
+  L.tiltG = new THREE.Group(); L.tiltG.rotation.set(...L.tilt); scene.add(L.tiltG);
+  L.spin = new THREE.Group(); L.tiltG.add(L.spin);
+  L.on = true;
+  const ringPts = [];
+  for (let i = 0; i <= 256; i++) { const a = i / 256 * Math.PI * 2; ringPts.push(new THREE.Vector3(Math.cos(a) * L.r, 0, Math.sin(a) * L.r)); }
+  L.ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPts), new THREE.LineBasicMaterial({ color: L.color, transparent: true, opacity: 0.16 }));
+  L.tiltG.add(L.ring);
+  L.tiltG.add(pulseLine(ringPts, L.color, { n: 1, speed: 0.05 + 0.012 * (7 - LAYERS.indexOf(L)), trail: 0.05, opacity: 0.85 })); // one light pulse per ring, like the intro
+  const ticks = [];
+  for (let i = 0; i < 90; i++) { const a = i / 90 * Math.PI * 2, l = i % 15 === 0 ? 0.3 : 0.1; ticks.push(Math.cos(a) * L.r, 0, Math.sin(a) * L.r, Math.cos(a) * (L.r + l), 0, Math.sin(a) * (L.r + l)); }
+  const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.Float32BufferAttribute(ticks, 3));
+  L.tiltG.add(new THREE.LineSegments(tg, new THREE.LineBasicMaterial({ color: L.color, transparent: true, opacity: 0.12 })));
+
+  const items = B.nodes.filter(L.test).sort((a, b) => (a.group || '').localeCompare(b.group || '') || a.name.localeCompare(b.name));
+  L.count = items.length;
+  L.size *= Math.min(1.5, Math.max(0.55, Math.sqrt(12 / L.count))); // fuller ring = smaller objects, emptier ring = bigger
+  const groups = [...new Set(items.map(n => n.group || ''))];
+  const slots = items.length + (groups.length > 1 ? groups.length * 1.2 : 0);
+  let slot = 0, prevG = null;
+  const geo = L.geo();
+  items.forEach((d) => {
+    if (groups.length > 1 && d.group !== prevG) { slot += 1.2; prevG = d.group; }
+    const a = slot / slots * Math.PI * 2 + L.r; slot++;
+    const holder = new THREE.Group();
+    holder.position.set(Math.cos(a) * L.r, 0, Math.sin(a) * L.r);
+    // The kind's shape is a glass body: back faces, then the emoji, then front faces, so the icon sits inside the glass.
+    const glass = (side, op) => new THREE.MeshPhysicalMaterial({ color: L.color, emissive: L.color, emissiveIntensity: 0.05, metalness: 0, roughness: 0.08,
+      clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.7, flatShading: true, transparent: true, opacity: op, depthWrite: false, side, userData: { op } });
+    const mesh = new THREE.Mesh(geo, glass(THREE.BackSide, 0.3));
+    mesh.renderOrder = 2;
+    const front = new THREE.Mesh(geo, glass(THREE.FrontSide, 0.14));
+    front.renderOrder = 4; mesh.add(front);
+    mesh.scale.setScalar(L.size * NS * 2.5);
+    const icon = iconFor(d);
+    // alphaTest + depthWrite: the emoji hides farther nodes' glass behind it, but not through its transparent corners
+    const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: badgeTexture(icon), transparent: true, alphaTest: 0.1, toneMapped: false }));
+    badge.userData.base = 0.85 * Math.max(L.size, 0.75) * NS;
+    badge.renderOrder = 3; // between the glass's back and front faces
+    badge.scale.setScalar(badge.userData.base);
+    const glow = glowSprite(L.color, 1.1 * L.size * NS, 0.35);
+    const hit = new THREE.Mesh(new THREE.SphereGeometry(0.55 * Math.max(L.size, 0.8) * NS, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+    holder.add(mesh, glow, badge, hit);
+    L.spin.add(holder);
+    const lab = document.createElement('div');
+    lab.className = 'lbl'; lab.style.setProperty('--c', L.color);
+    lab.innerHTML = `<i></i><span>${icon} ${esc(d.scope === 'plugin' ? d.name.split(':').pop() : d.name)}</span>`;
+    labelsEl.appendChild(lab);
+    const v = { d, L, holder, mesh, mats: [mesh.material, front.material], glow, badge, icon, hit, lab, act: 0, target: 0, fade: 0, emis: new THREE.Color(L.color), bob: Math.random() * 6.28, world: new THREE.Vector3(),
+      always: typeof L.label === 'function' ? L.label(d) : L.label, minor: L.key === 'appskills' || d.scope === 'plugin' };
+    hit.userData.v = v; hitMeshes.push(hit);
+    nodes.push(v); byId[d.id] = v;
+  });
+}
+const coreLab = document.createElement('div');
+coreLab.className = 'lbl core'; coreLab.style.setProperty('--c', '#ffcf7a');
+coreLab.innerHTML = '<i></i><span>THE BRAIN</span>'; labelsEl.appendChild(coreLab);
+CORE.lab = coreLab;
+
+// ---------------- edges (curved light paths with travelling pulses) ----------------
+const SEG = 40, MAXE = 90;
+const edgePool = [];
+for (let i = 0; i < MAXE; i++) {
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SEG * 3), 3));
+  const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: '#ffb547', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  line.frustumCulled = false; scene.add(line);
+  const pulse = glowSprite('#ffffff', 0.45, 0); scene.add(pulse);
+  edgePool.push({ line, pulse, a: null, b: null, op: 0, want: 0, phase: Math.random() });
+}
+function setEdges(list) {
+  edgePool.forEach((e, i) => {
+    const it = list[i];
+    if (it) { e.a = it.a; e.b = it.b; e.want = it.strength ?? 0.8; e.line.material.color.set(it.color || colorOf(it.b)); e.pulse.material.color.set(it.color || colorOf(it.b)); }
+    else e.want = 0;
+  });
+}
+const colorOf = v => v.isCore ? '#ffcf7a' : v.L.color;
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3(), tmpP = new THREE.Vector3();
+function updateEdges(t, dt) {
+  for (const e of edgePool) {
+    e.op += (e.want - e.op) * Math.min(1, dt * 5);
+    const vis = e.a && e.b && e.op > 0.01 && visibleNode(e.a) && visibleNode(e.b);
+    e.line.visible = e.pulse.visible = !!vis;
+    if (!vis) continue;
+    tmpB.copy(e.b.world);
+    if (e.a.isCore) tmpA.copy(tmpB).normalize().multiplyScalar(3.6); else tmpA.copy(e.a.world);
+    if (e.b.isCore) tmpB.copy(tmpA).normalize().multiplyScalar(3.6);
+    tmpC.addVectors(tmpA, tmpB).multiplyScalar(0.36); tmpC.y += 1.2;
+    const arr = e.line.geometry.attributes.position.array;
+    for (let i = 0; i < SEG; i++) { bez(i / (SEG - 1)); arr[i * 3] = tmpP.x; arr[i * 3 + 1] = tmpP.y; arr[i * 3 + 2] = tmpP.z; }
+    e.line.geometry.attributes.position.needsUpdate = true;
+    e.line.material.opacity = e.op * 0.75;
+    bez((t * 0.45 + e.phase) % 1); e.pulse.position.copy(tmpP); e.pulse.material.opacity = e.op;
+  }
+}
+function bez(u) { const k = 1 - u; tmpP.set(0, 0, 0).addScaledVector(tmpA, k * k).addScaledVector(tmpC, 2 * k * u).addScaledVector(tmpB, u * u); }
+const visibleNode = v => v.isCore || v.L.on;
+
+// incoming "your message" flyers
+const flyers = [];
+function launchFlyer() {
+  const s = glowSprite('#fff3d6', 1.4, 1); scene.add(s);
+  const from = camera.position.clone().multiplyScalar(0.55); from.y -= 4;
+  flyers.push({ s, from, t: 0 });
+}
+
+// ---------------- state ----------------
+let work = null; // the live task in progress: { id, since, last }
+let replaySpeed = 1, focus = null, focusAmt = 0, selected = null, litLayer = null, hovered = null, speed = 1, aperture = 0.15, coreKick = 0, allLabels = false;
+const edgesOf = id => B.edges.filter(e => e[0] === id || e[1] === id);
+
+function select(v) {
+  selected = v; litLayer = null;
+  nodes.forEach(n => n.target = 0); CORE.target = 0;
+  if (!v) { focus = null; setEdges([]); renderHome(); return; }
+  v.target = 1.2;
+  const list = [];
+  focus = new Set([v]); // isolate: only this element and what it connects to stay visible
+  for (const [f, to, label] of edgesOf(v.d.id)) {
+    const a = byId[f], b = byId[to];
+    if (!a || !b) continue;
+    const other = a === v ? b : a;
+    other.target = Math.max(other.target, 0.55);
+    focus.add(other);
+    list.push({ a, b, strength: 0.75 });
+  }
+  setEdges(list.slice(0, MAXE));
+  renderNode(v);
+}
+
+// ---------------- inspector ----------------
+const insp = document.getElementById('insp');
+function renderHome() {
+  setTab('overview');
+  const cards = LAYERS.map((L, i) => `
+    <div class="card" data-layer="${i}" style="--c:${L.color}"><span class="n">0${i + 1}</span><h4>${esc(L.name)} <small style="color:var(--dim);font-weight:400">· ${L.count}</small></h4><p>${esc(L.what)}</p></div>`).join('');
+  insp.innerHTML = `
+    <span class="badge fill" style="--c:#ffcf7a">HOW I WORK</span>
+    <h2>One brain, seven rings</h2>
+    <div class="desc">The glowing core is me. Each ring is a kind of thing I can use. The closer to the core, the more often it's in my head.</div>
+    <div class="how" style="--c:#ffcf7a">Every message: I read the inner ring, compare your words with the skill and agent descriptions, load what fits, then reach out to tools and folders. Open <b>History</b> to replay one of your real prompts and watch it happen.</div>
+    <div class="ph" style="margin-top:18px">THE RINGS <span>click one to highlight it</span></div>
+    ${cards}`;
+  insp.querySelectorAll('.card').forEach(c => c.onclick = () => {
+    const L = LAYERS[+c.dataset.layer];
+    selected = null; litLayer = litLayer === L ? null : L;
+    focus = litLayer ? new Set(nodes.filter(n => n.L === litLayer)) : null; // the rest fades to gray, like a selected node
+    insp.querySelectorAll('.card').forEach(x => x.classList.toggle('on', LAYERS[+x.dataset.layer] === litLayer));
+    nodes.forEach(n => n.target = n.L === litLayer ? 0.6 : 0);
+    setEdges([]);
+  });
+}
+
+function howText(d) {
+  switch (d.kind) {
+    case 'core': return 'Each message I re-read my whole context window (rules, catalog, the conversation so far), decide what to do, and call tools. I keep nothing between sessions except what is saved in files.';
+    case 'context': return `Loaded into every conversation automatically, before you type. It costs about ${fmtTok(d.tokens)} tokens on every message you send (cached parts cost roughly 10%).`;
+    case 'skill':
+      if (d.scope === 'app' || d.scope === 'builtin') return `Comes with Codex. Like your own skills, only its name and description sit in my catalog until a request needs it.`;
+      return `A recipe stored as a file. At session start I only see its name and description (about ${fmtTok(d.descTokens)} tokens). When your request matches that description, I read the whole file (about ${fmtTok(d.tokens)} tokens) and follow it.${d.scope === 'plugin' ? ` Comes from the ${esc(d.group)} plugin.` : ''}`;
+    case 'agent': return `A separate Codex worker. I write it a brief; it starts with a fresh, empty context, can use only the tools listed here, and hands back a short summary. That keeps my own context small and gives you an independent second opinion.`;
+    case 'tool': return `One of my hands. Without tools I can only write text; with them I can read files, drive apps and fetch pages. Kind: ${esc(d.sub)}.`;
+    case 'plugin':
+      if (d.isGuard) return 'A safety guard. It works on its own, outside my judgement, so mistakes get blocked even if I miss them.';
+      return d.isMod ? 'A mod.' : 'A package that installs a set of skills (and sometimes agents or hooks) in one go.';
+    case 'storage': return 'A folder inside .codex. It is never loaded into my context on its own. I open files here only when a task needs them, and write results here so they survive after the session ends.';
+  }
+  return '';
+}
+
+function renderNode(v) {
+  setTab(null);
+  const d = v.d, c = v.isCore ? '#ffcf7a' : v.L.color;
+  const kind = d.kind === 'tool' ? (d.sub || 'tool').toUpperCase() : d.isGuard ? 'GUARD' : (d.isMod ? 'MOD' : KIND_NAME[d.kind]);
+  const rows = [];
+  if (d.scope) rows.push(['From', { project: 'This project', user: 'Your Codex folder', plugin: 'Plugin: ' + d.group, app: 'Codex', builtin: 'Comes with Codex' }[d.scope]]);
+  if (d.path) rows.push(['Stored', d.path.includes(':\\') ? `<a href="file:///${esc(d.path.replace(/\\/g, '/'))}" target="_blank">${esc(d.path)}</a>` : esc(d.path), true]);
+  if (d.model) rows.push(['Model', d.model === 'inherit' ? 'same as me' : d.model === 'cheaper' ? 'a cheaper model' : d.model]);
+  if (d.effort) rows.push(['Effort', d.effort]);
+  if (d.tools?.length) rows.push(['Tools', d.tools.join(', ')]);
+  if (d.version) rows.push(['Version', d.version + (d.on === false ? ' (installed, not enabled here)' : '')]);
+  if (d.files != null) rows.push(['Files', d.files]);
+  if (d.lines) rows.push(['Lines', d.lines]);
+  if (d.kind === 'context' && !d.exists) rows.push(['Status', 'empty / not created']);
+  const kv = rows.map(([k, val, raw]) => `<dt>${k}</dt><dd>${raw ? val : esc(val)}</dd>`).join('');
+
+  let cost = '';
+  if (d.kind === 'skill' && d.tokens) {
+    const max = Math.max(d.tokens, 1);
+    cost = `<div class="ph" style="margin-top:16px">TOKEN COST <span>how much of my attention</span></div>
+      <div class="bud"><div class="row">Always (description)<b>${fmtTok(d.descTokens)}</b></div><div class="bar"><i style="width:${Math.max(2, d.descTokens / max * 100)}%"></i></div></div>
+      <div class="bud"><div class="row">Once used (full file)<b>${fmtTok(d.tokens)}</b></div><div class="bar"><i style="width:100%"></i></div></div>`;
+  }
+  const outline = d.outline?.length ? `<div class="ph" style="margin-top:16px">INSIDE THE FILE</div><ul class="outline">${d.outline.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : '';
+  const subs = d.subs?.length ? `<div class="ph" style="margin-top:16px">SUB-GUIDES <span>${d.subs.length}</span></div><div class="chips">${d.subs.map(s => `<span class="chip" style="--c:${c};cursor:default">${esc(s)}</span>`).join('')}</div>` : '';
+  const items = d.items?.length ? `<div class="ph" style="margin-top:16px">INSIDE</div><div class="chips">${d.items.map(s => `<span class="chip" style="--c:${c};cursor:default">${esc(s)}</span>`).join('')}</div>` : '';
+
+  const outs = [], ins = [];
+  for (const [f, to, label] of edgesOf(d.id)) (f === d.id ? outs : ins).push([f === d.id ? to : f, label]);
+  const chipList = arr => arr.filter(([id]) => byId[id]).map(([id, label]) => {
+    const o = byId[id]; return `<span class="chip" data-id="${esc(id)}" style="--c:${colorOf(o)}">${o.icon || ''} ${esc(o.d.name)}<small>${esc(label)}</small></span>`;
+  }).join('');
+  const conn = (outs.length ? `<div class="ph" style="margin-top:16px">REACHES OUT TO <span>${outs.length}</span></div><div class="chips">${chipList(outs)}</div>` : '') +
+               (ins.length ? `<div class="ph" style="margin-top:16px">USED BY <span>${ins.length}</span></div><div class="chips">${chipList(ins)}</div>` : '');
+
+  insp.innerHTML = `
+    <span class="badge fill" style="--c:${c}">${esc(kind)}</span>
+    <h2>${v.icon ? v.icon + ' ' : ''}${esc(d.name)}</h2>
+    ${d.desc ? `<div class="desc">${d.kind === 'skill' || d.kind === 'agent' ? '<span style="color:var(--dim)">Used when: </span>' : ''}${esc(d.desc)}</div>` : ''}
+    <div class="how" style="--c:${c}">${howText(d)}</div>
+    <dl class="kv">${kv}</dl>${cost}${outline}${subs}${items}${conn}
+    <div class="note" style="margin-top:14px"><a href="#" id="back" style="color:var(--gold)">&larr; back to overview</a></div>`;
+  insp.querySelectorAll('.chip[data-id]').forEach(ch => ch.onclick = () => select(byId[ch.dataset.id]));
+  insp.querySelector('#back').onclick = e => { e.preventDefault(); select(null); };
+}
+
+// ---------------- left panel ----------------
+// Panels move by dragging their empty top edge; the spot is remembered for next time.
+for (const p of document.querySelectorAll('aside.panel')) {
+  const key = 'brain.pos.' + p.id, onEdge = e => e.target === p && e.clientY - p.getBoundingClientRect().top < 16;
+  let drag = null;
+  const btn = p.querySelector('.min');
+  const setMini = on => { p.classList.toggle('mini', on); btn.textContent = on ? '+' : '–'; btn.title = on ? 'Expand' : 'Minimize'; };
+  const mini0 = p.classList.contains('mini'); // default from the HTML
+  try { const m = localStorage.getItem('brain.mini.' + p.id); setMini(m ? m === '1' : mini0); } catch { setMini(mini0); }
+  btn.onclick = () => { const on = !p.classList.contains('mini'); setMini(on); try { localStorage.setItem('brain.mini.' + p.id, on ? '1' : '0'); } catch {} };
+  const place = (x, y) => {
+    x = Math.min(Math.max(0, x), innerWidth - p.offsetWidth); y = Math.min(Math.max(0, y), innerHeight - 40);
+    Object.assign(p.style, { left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto', maxHeight: innerHeight - y - 16 + 'px' });
+  };
+  try { const pos = JSON.parse(localStorage.getItem(key)); if (pos) place(...pos); } catch {}
+  p.onpointerdown = e => {
+    if (!onEdge(e)) return;
+    e.preventDefault();
+    drag = [e.clientX - p.offsetLeft, e.clientY - p.offsetTop];
+    p.setPointerCapture(e.pointerId);
+  };
+  p.onpointermove = e => {
+    if (drag) place(e.clientX - drag[0], e.clientY - drag[1]);
+    else p.style.cursor = onEdge(e) ? 'grab' : '';
+  };
+  p.onpointerup = () => {
+    if (!drag) return;
+    drag = null;
+    try { localStorage.setItem(key, JSON.stringify([p.offsetLeft, p.offsetTop])); } catch {}
+  };
+}
+const layerList = document.getElementById('layerList');
+layerList.innerHTML = LAYERS.map((L, i) => `<div class="layer" data-i="${i}" style="--c:${L.color}" title="${esc(L.what)}"><span class="dot"></span><span class="nm">${esc(L.name)}</span><span class="ct">${L.count}</span></div>`).join('');
+layerList.querySelectorAll('.layer').forEach(el => el.onclick = () => {
+  const L = LAYERS[+el.dataset.i]; L.on = !L.on; L.tiltG.visible = L.on; el.classList.toggle('off', !L.on);
+});
+const bindSlider = (id, fn, fmt) => { const el = document.getElementById(id), out = document.getElementById(id + 'v'); const f = () => { fn(+el.value); out.textContent = fmt(+el.value); }; el.oninput = f; f(); };
+bindSlider('spd', v => speed = v, v => v.toFixed(1) + 'x');
+bindSlider('glw', v => bloom.strength = v, v => v.toFixed(1));
+bindSlider('ap', v => aperture = v, v => Math.round(v * 100) + '%');
+bindSlider('rsp', v => replaySpeed = v, v => v + 'x');
+document.getElementById('allLbl').onchange = e => allLabels = e.target.checked;
+
+const budget = [...B.nodes.filter(n => n.kind === 'context' && n.tokens).map(n => ({ name: n.name, t: n.tokens, id: n.id })),
+  { name: `Catalog: ${nodes.filter(n => n.d.kind === 'skill' || n.d.kind === 'agent').length} descriptions`, t: B.catalogTokens }];
+const bmax = Math.max(...budget.map(b => b.t)), btotal = budget.reduce((a, b) => a + b.t, 0);
+document.getElementById('budget').innerHTML = budget.map(b => `<div class="bud" ${b.id ? `data-id="${b.id}" style="cursor:pointer"` : ''}><div class="row">${esc(b.name)}<b>≈${fmtTok(b.t)}</b></div><div class="bar"><i style="width:${b.t / bmax * 100}%"></i></div></div>`).join('') +
+  `<div class="note">≈${fmtTok(btotal)} tokens of yours ride along with every message, on top of the app's own instructions. Skill bodies only join when used.</div>`;
+document.querySelectorAll('#budget .bud[data-id]').forEach(el => el.onclick = () => select(byId[el.dataset.id]));
+
+const cnt = k => B.nodes.filter(n => n.kind === k).length;
+const when = new Date(B.scannedAt);
+document.getElementById('scanInfo').textContent =
+  `SCANNED ${when.toLocaleDateString(undefined, { day: '2-digit', month: 'short' }).toUpperCase()} ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${cnt('skill')} SKILLS · ${cnt('agent')} AGENTS · ${cnt('tool')} TOOLS · ${B.edges.length} LINKS`;
+
+// ---------------- narration (top of the right panel) ----------------
+const nowEl = document.getElementById('now');
+function setStep(label, html) {
+  nowEl.innerHTML = label ? `<span class="stl">${esc(label)}</span>${html}<div class="tick" id="tick"></div>` : '';
+  nowEl.classList.toggle('on', !!label);
+  updateTick();
+}
+// While a live task runs, keep a running clock so the view never looks stalled between steps.
+const SPIN = ['◐', '◓', '◑', '◒'];
+function updateTick() {
+  if (!work) { const el = document.getElementById('tick'); if (el) el.textContent = ''; return; }
+  if (!nowEl.classList.contains('on')) { setStep('LIVE · WORKING', 'on your task'); return; }
+  const el = document.getElementById('tick');
+  const idle = (Date.now() - work.last) / 1000;
+  el.textContent = `${SPIN[Math.floor(Date.now() / 250) % 4]} working for ${fmtDur((Date.now() - work.since) / 1000)}` + (idle > 3 ? ` · thinking, ${Math.round(idle)}s since the last step` : '');
+}
+setInterval(updateTick, 250);
+
+// ---------------- history, replay and live ----------------
+// The server reads Claude's own session files (~/.claude/projects) and streams new steps as they are written.
+const tabsEl = document.getElementById('tabs');
+let tab = 'overview';
+function setTab(t) { tab = t; tabsEl.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); }
+tabsEl.onclick = e => { const b = e.target.closest('button'); if (!b) return; stopReplay(); watching = false; if (b.dataset.tab === 'history') openHistory(); else if (b.dataset.tab === 'live') watchLive(); else select(null); };
+
+const clipS = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+const base = p => String(p || '').split(/[\\/]/).filter(Boolean).slice(-2).join('\\');
+const fmtDur = s => s < 60 ? Math.round(s) + 's' : s < 3600 ? Math.floor(s / 60) + 'm ' + Math.round(s % 60) + 's' : Math.floor(s / 3600) + 'h ' + Math.round(s % 3600 / 60) + 'm';
+const PROGS = [['prog:ffmpeg', /\bffmpeg|ffprobe/i], ['prog:blender', /blender(\.exe)?["']?\s+(-b|--background)|blender\.exe/i], ['prog:whisper', /whisper/i],
+  ['prog:ytdlp', /yt-dlp/i], ['prog:autoeditor', /auto-editor/i], ['prog:flutter', /\bflutter\b|gradle|adb\b/i]];
+// Blender: the Blender node stands in when the MCP has no node of its own
+const MCP = { blender: [['mcp:blender', 'prog:blender'], 'BLENDER'], Claude_Browser: ['tool:browser', 'BROWSER'], 'claude-in-chrome': ['tool:chrome', 'CHROME'], dart: ['tool:dart', 'DART'] };
+
+// Which nodes a recorded step touches, and how to describe it.
+function mapStep(s) {
+  const P = s.input || {}, out = [];
+  const add = id => { const v = byId[id]; if (v && !out.includes(v)) out.push(v); };
+  const paths = text => {
+    const low = String(text || '').replace(/\//g, '\\').toLowerCase().replace(/(^|[\s"'])\\([a-z])\\/g, '$1$2:\\'); // Git Bash /f/... -> f:\...
+    for (const m of low.matchAll(/\.codex\\([\w.-]+)/g)) add('store:' + m[1]);
+    for (const m of low.matchAll(/\\skills\\([\w-]+)\\/g)) add('skill:' + m[1]);
+    for (const m of low.matchAll(/\\agents\\([\w-]+)\.md/g)) add('agent:' + m[1]);
+    for (const n of nodes) if ((n.d.kind === 'context' || n.d.id.startsWith('guard:')) && n.d.path && low.includes(n.d.path.toLowerCase())) add(n.d.id);
+  };
+  const ms = s.ms != null ? (s.ms / 1000).toFixed(1) + 's' : '';
+  const res = { nodes: out, verb: s.kind.toUpperCase(), label: '', why: '', extra: '', persist: false };
+  if (s.kind === 'think') Object.assign(res, { verb: 'THINK', label: s.text ? clipS(s.text, 180) : 'Thinking', why: s.text ? 'my reasoning before the next move' : 'reasoning before the next move (the app keeps the text hidden)' });
+  else if (s.kind === 'say') Object.assign(res, { verb: 'WRITE', label: clipS(s.text, 200), why: 'text written to you' });
+  else if (s.kind === 'user') Object.assign(res, { verb: 'YOU', label: clipS(s.text, 200), why: 'a message you sent while I was working' });
+  else if (s.kind === 'report') { add('agent:' + s.name); Object.assign(res, { verb: 'AGENT REPORT', label: clipS(s.text, 200), why: `${s.name} handed its summary back to me` }); }
+  else {
+    const n = s.name;
+    if (n === 'Skill') { const [pl, id] = (P.skill || '').includes(':') ? P.skill.split(':') : ['', P.skill || '']; add('skill:' + id); if (pl) add('plugin:' + pl); Object.assign(res, { verb: 'LOAD SKILL', label: P.skill || 'skill', why: 'its full SKILL.md enters my context and I follow its steps', persist: true }); }
+    else if (n === 'Agent' || n === 'Task') {
+      add('agent:' + (P.subagent_type || 'general-purpose'));
+      Object.assign(res, { verb: 'AGENT', label: (P.subagent_type || 'general-purpose') + (P.description ? ': ' + P.description : ''), why: 'a separate agent with a fresh context does this and reports back', persist: true });
+      if (s.agent) res.extra = [s.agent.model, s.agent.tools != null && s.agent.tools + ' tool calls', s.agent.ms && fmtDur(s.agent.ms / 1000)].filter(Boolean).join(' · ');
+    }
+    else if (n.startsWith('mcp__')) {
+      const [, server, tool] = n.match(/^mcp__(.+?)__(.+)$/) || [];
+      for (const id of [].concat(MCP[server]?.[0] || 'mcp:' + server)) add(id); Object.assign(res, { verb: (MCP[server]?.[1] || server || 'MCP').toUpperCase().slice(0, 12), label: (tool || n).replace(/_/g, ' ') + (P.action ? ' · ' + P.action : ''), why: 'working an app through its connector' });
+    }
+    else if (/^(Read|Write|Edit|NotebookEdit)$/.test(n)) { add('tool:files'); paths(P.file_path || P.notebook_path); Object.assign(res, { verb: n === 'Read' ? 'READ' : n === 'Write' ? 'WRITE FILE' : 'EDIT', label: base(P.file_path || P.notebook_path), why: n === 'Read' ? 'pulling a file into my context' : 'changing a file on disk' }); }
+    else if (n === 'Grep' || n === 'Glob') { add('tool:files'); paths(P.path); Object.assign(res, { verb: 'SEARCH', label: P.pattern || '', why: 'looking through files' }); }
+    else if (n === 'Bash' || n === 'PowerShell') {
+      add('tool:files'); for (const [id, re] of PROGS) if (re.test(P.command || '')) add(id); paths(P.command);
+      if (/\bgit\s+commit\b/.test(P.command || '')) add('guard:hook'); // the secret-scanning hook runs on every commit
+      Object.assign(res, { verb: 'RUN', label: P.description || clipS(P.command, 120), why: 'running a command on your PC' });
+      if (P.description) res.extra = clipS(P.command, 140);
+    }
+    else if (n === 'WebFetch' || n === 'WebSearch') { add('tool:web'); Object.assign(res, { verb: n === 'WebFetch' ? 'READ PAGE' : 'WEB SEARCH', label: P.url || P.query || '', why: 'reading the web' }); }
+    else if (n === 'ToolSearch') Object.assign(res, { verb: 'LOOK UP', label: P.query || 'tools', why: 'loading the definitions of tools I need' });
+    else Object.assign(res, { verb: n.toUpperCase().slice(0, 14), label: P.description || P.title || P.query || P.file_path || '', why: '' });
+    if (s.error) res.extra = 'error: ' + s.error;
+    else if (!res.extra && ms) res.extra = ms;
+  }
+  res.color = out[0] ? out[0].L.color : s.kind === 'user' ? '#fff0cc' : '#ffcf7a';
+  return res;
+}
+
+// Light up the brain as it was at step i of a list of steps (i = -1 is the moment the prompt arrives).
+function showAt(steps, i, promptText) {
+  nodes.forEach(n => n.target = 0);
+  const ctx = nodes.filter(n => n.d.kind === 'context');
+  if (i < 0) {
+    launchFlyer(); ctx.forEach(n => n.target = 1);
+    setEdges(ctx.map(b => ({ a: CORE, b })));
+    setStep('YOU', `“${esc(clipS(promptText, 220))}” <span style="color:var(--dim)">· arrives together with the always-loaded rules</span>`);
+    return;
+  }
+  ctx.forEach(n => n.target = 0.3);
+  for (let k = 0; k < i; k++) { const m = mapStep(steps[k]); if (m.persist) m.nodes.forEach(n => n.target = 0.8); }
+  // Who connects with who: the core reaches the first node of a step and that node reaches the rest
+  // (Files & shell -> the file it read, a skill -> its plugin); an agent's report flows back to the core.
+  // The last 6 steps stay lit; skills, agents and plugins used earlier keep a faint link for the whole task.
+  const edges = [], byKey = new Map();
+  const link = (a, b, strength) => {
+    const key = a.d.id + '>' + b.d.id, e = byKey.get(key);
+    if (e) e.strength = Math.max(e.strength, strength); else { const n = { a, b, strength }; byKey.set(key, n); edges.push(n); }
+  };
+  for (let k = 0; k <= i; k++) {
+    const m = mapStep(steps[k]), recent = k >= i - 5;
+    if (!m.nodes.length || (!recent && !m.persist)) continue;
+    const st = k === i ? 1 : recent ? 0.15 + 0.12 * (k - i + 5) : 0.3;
+    m.nodes.forEach((n, j) => {
+      if (recent) n.target = k === i ? 1.5 : Math.max(n.target, 0.5);
+      if (steps[k].kind === 'report') link(n, CORE, st); else link(j ? m.nodes[0] : CORE, n, st);
+    });
+  }
+  setEdges(edges.slice(-MAXE));
+  const s = steps[i], m = mapStep(s);
+  coreKick = s.kind === 'think' ? 1 : Math.max(coreKick, 0.45);
+  if (s.kind === 'user') launchFlyer();
+  setStep(m.verb, `${esc(m.label)}${s.error ? ' <span class="live">· failed</span>' : ''}${m.why ? ` <span style="color:var(--dim)">· ${esc(m.why)}</span>` : ''}`);
+}
+
+let history = null, histErr = '', histQuery = '', followLive = true;
+async function loadHistory() {
+  try { history = await (await fetch('/api/history')).json(); histErr = ''; }
+  catch { history = []; histErr = location.protocol === 'file:' ? 'History needs the Brain server. Open it with The Brain shortcut: it starts the server and opens http://localhost:8766.' : 'Could not reach the Brain server. Close this window and open The Brain shortcut again.'; }
+}
+async function openHistory() {
+  setTab('history');
+  if (!history || histErr) { insp.innerHTML = '<div class="note">Loading your prompts…</div>'; await loadHistory(); }
+  renderHistory();
+}
+const projName = t => t.title || base(t.cwd).split('\\').pop() || 'session';
+const dayKey = iso => new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase();
+const hm = iso => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const isLive = t => Date.now() - Date.parse(t.end) < 90000;
+const usedChip = name => { const v = byId['skill:' + name.split(':').pop()] || byId['agent:' + name]; return `<span class="chip" style="--c:${v ? v.L.color : 'var(--gold)'}">${v ? v.icon + ' ' : ''}${esc(name)}</span>`; };
+function renderHistory() {
+  if (tab !== 'history' || rp) return;
+  const qq = histQuery.toLowerCase();
+  const list = (history || []).filter(t => !qq || t.text.toLowerCase().includes(qq) || projName(t).toLowerCase().includes(qq));
+  let day = '', rows = '';
+  for (const t of list) {
+    const dk = dayKey(t.time);
+    if (dk !== day) { day = dk; rows += `<div class="day">${dk}</div>`; }
+    rows += `<div class="turn" data-id="${esc(t.id)}"><div class="meta"><span>${hm(t.time)} · ${esc(clipS(projName(t), 32))}</span><span>${isLive(t) ? '<span class="live">LIVE</span> · ' : ''}${t.steps} steps</span></div>
+      <div class="txt">${esc(t.text) || '<i>(image only)</i>'}${t.images ? ` <span style="color:var(--dim)">+${t.images} image</span>` : ''}</div>
+      ${t.used.length ? `<div class="chips">${t.used.map(usedChip).join('')}</div>` : ''}</div>`;
+  }
+  const scroll = document.getElementById('right').scrollTop;
+  insp.innerHTML = `<span class="badge fill" style="--c:#ffcf7a">HISTORY</span><h2>Your prompts</h2>
+    <div class="desc">Every message you sent Codex, read from its own session files. Pick one to replay how it was handled, step by step.</div>
+    <input class="hsearch" id="hs" placeholder="Search prompts or projects" value="${esc(histQuery)}">
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="fl" ${followLive ? 'checked' : ''}> Follow live: animate new steps as they happen</label>
+    ${histErr ? `<div class="how" style="--c:#ff6a3a">${esc(histErr)}</div>` : ''}
+    ${rows || (histErr ? '' : '<div class="note">No prompts match.</div>')}`;
+  document.getElementById('right').scrollTop = scroll;
+  const hs = insp.querySelector('#hs');
+  hs.oninput = () => { histQuery = hs.value; const pos = hs.selectionStart; renderHistory(); const n = insp.querySelector('#hs'); n.focus(); n.setSelectionRange(pos, pos); };
+  insp.querySelector('#fl').onchange = e => followLive = e.target.checked;
+  insp.querySelectorAll('.turn').forEach(el => el.onclick = () => openTurn(el.dataset.id));
+}
+
+let rp = null; // the replay that is open: { turn, i, playing, timer }
+async function openTurn(id) {
+  stopReplay(); setTab(watching ? 'live' : 'history');
+  insp.innerHTML = '<div class="note">Loading…</div>';
+  let turn = null; try { turn = await (await fetch('/api/turn?id=' + encodeURIComponent(id))).json(); } catch {}
+  if (!turn) { insp.innerHTML = '<div class="note">That prompt could not be loaded.</div>'; return; }
+  rp = { turn, i: -2, playing: false, timer: 0 };
+  focus = usedBy(turn);
+  document.getElementById('right').scrollTop = 0;
+  renderTurn();
+  if (!watching) return play();
+  // LIVE tab: skip the replay, jump to the newest step and follow from there
+  goto(turn.steps.length - 1);
+  const panel = document.getElementById('right'); panel.scrollTo({ top: panel.scrollHeight });
+}
+// The LIVE tab: always shows the task Claude is working on now, and opens the next one on its own.
+let watching = false;
+async function watchLive() {
+  watching = true; setTab('live');
+  if (!history || histErr) { insp.innerHTML = '<div class="note">Connecting…</div>'; await loadHistory(); }
+  if (histErr) { insp.innerHTML = `<div class="how" style="--c:#ff6a3a">${esc(histErr)}</div>`; return; }
+  const t = history.find(t => !t.done && Date.now() - Date.parse(t.end) < 5 * 60000);
+  if (t) return openTurn(t.id);
+  insp.innerHTML = `<span class="badge fill" style="--c:#ff7a5a">LIVE</span><h2>Waiting for your next prompt</h2>
+    <div class="desc">Nothing is running right now. Send Codex a message in any session and it opens here by itself: every thought, tool call and reply, as it happens.</div>`;
+}
+function renderTurn() {
+  const t = rp.turn;
+  const dur = Math.max(0, (Date.parse(t.end) - Date.parse(t.time)) / 1000);
+  const tools = t.steps.filter(s => s.kind === 'tool').length;
+  insp.innerHTML = `<div class="note" style="margin:0 0 10px"><a href="#" id="hb" style="color:var(--gold)">&larr; all prompts</a></div>
+    <span class="badge fill" style="--c:#ffcf7a">${watching ? 'WATCHING' : 'REPLAY'}</span>${isLive(t) ? ' <span class="badge" style="--c:#ff7a5a">LIVE</span>' : ''}
+    <div class="prompt">${esc(t.text) || '(image only)'}</div>
+    <dl class="kv"><dt>When</dt><dd>${esc(new Date(t.time).toLocaleString())}</dd><dt>Where</dt><dd>${esc(projName(t))}</dd>
+      <dt>Took</dt><dd>${fmtDur(dur)} · ${tools} tool calls · ${t.steps.length} steps</dd></dl>
+    ${(() => { const used = [...focus].filter(n => n.d.kind !== 'context'); return `<div class="ph" style="margin-top:14px">USED IN THIS PROMPT <span>${used.length ? 'everything else is grayed out' : 'only core tools'}</span></div>` + (used.length ? `<div class="chips">${used.map(n => `<span class="chip" style="--c:${n.L.color};cursor:default">${esc(n.lab.textContent)}</span>`).join('')}</div>` : ''); })()}
+    <div class="player"><button class="main" id="pp"></button><button id="pv" title="Previous step">&#9664;</button><button id="nx" title="Next step">&#9654;</button><span class="pos" id="pos"></span></div>
+    <div class="steplist">${t.steps.map((s, i) => { const m = mapStep(s); return `<div class="step" data-i="${i}" style="--c:${m.color}"><span class="v">${esc(m.verb)}</span><span class="l">${esc(m.label)}</span>${m.extra ? `<span class="x">${esc(m.extra)}</span>` : ''}</div>`; }).join('')}</div>`;
+  insp.querySelector('#hb').onclick = e => { e.preventDefault(); stopReplay(); watching = false; setTab('history'); renderHistory(); };
+  insp.querySelector('#pp').onclick = () => rp.playing ? pause() : play();
+  insp.querySelector('#pv').onclick = () => { pause(); goto(Math.max(-1, rp.i - 1)); };
+  insp.querySelector('#nx').onclick = () => { pause(); goto(Math.min(rp.turn.steps.length - 1, rp.i + 1)); };
+  insp.querySelectorAll('.step').forEach(el => el.onclick = () => { pause(); goto(+el.dataset.i); });
+  markStep();
+}
+function goto(i) { rp.i = i; showAt(rp.turn.steps, i, rp.turn.text); markStep(); }
+function markStep() {
+  insp.querySelectorAll('.step').forEach(el => { const k = +el.dataset.i; el.classList.toggle('on', k === rp.i); el.classList.toggle('done', k < rp.i); });
+  const cur = insp.querySelector('.step.on');
+  if (cur && rp.playing) cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  const pos = insp.querySelector('#pos'); if (pos) pos.textContent = `${Math.max(0, rp.i + 1)} / ${rp.turn.steps.length}`;
+  const pp = insp.querySelector('#pp'); if (pp) pp.textContent = rp.playing ? 'PAUSE' : 'PLAY';
+}
+const stepDelay = s => !s ? 1800 : s.kind === 'think' ? 900 : s.kind === 'say' ? 1700 : 1150;
+function play() { if (!rp) return; if (rp.i >= rp.turn.steps.length - 1) rp.i = -2; rp.playing = true; tick(); }
+function tick() {
+  if (!rp || !rp.playing) return;
+  if (rp.i >= rp.turn.steps.length - 1) {
+    rp.playing = false; markStep();
+    if (!rp.turn.done) { setStep('LIVE', 'caught up with the task, now following each new step as it happens'); document.getElementById('right').scrollTo({ top: 1e9, behavior: 'smooth' }); return; }
+    setStep('DONE', rp.turn.reply ? `Final reply: “${esc(clipS(rp.turn.reply, 220))}”` : 'This turn ended without a written reply.');
+    return;
+  }
+  goto(rp.i + 1);
+  rp.timer = setTimeout(tick, stepDelay(rp.turn.steps[rp.i]) / replaySpeed);
+}
+function pause() { if (!rp) return; rp.playing = false; clearTimeout(rp.timer); markStep(); }
+function stopReplay() { if (rp) { clearTimeout(rp.timer); rp = null; focus = null; setStep(''); } }
+// Every node a turn touched, plus the always-loaded rules it was read with.
+function usedBy(turn) {
+  const set = new Set(nodes.filter(n => n.d.kind === 'context'));
+  for (const s of turn.steps) for (const n of mapStep(s).nodes) set.add(n);
+  return set;
+}
+
+// Live: the server pushes new prompts and steps from any Claude session.
+const liveQ = [];
+let liveTimer = 0, liveTurn = null;
+function connectLive() {
+  if (location.protocol === 'file:') return;
+  const dot = document.getElementById('livedot');
+  const es = new EventSource('/api/live');
+  es.onopen = async () => {
+    dot.classList.remove('off');
+    try {
+      history = await (await fetch('/api/history')).json(); histErr = '';
+      const t = history.find(t => !t.done && Date.now() - Date.parse(t.end) < 5 * 60000);
+      if (t && !work) work = { id: t.id, since: Date.parse(t.time), last: Date.parse(t.end) };
+      if (tab === 'history' && !rp) renderHistory();
+    } catch {}
+  };
+  es.onerror = () => dot.classList.add('off');
+  es.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    if (ev.type !== 'prompt' && ev.type !== 'steps') return;
+    if (!ev.turn.done) work = { id: ev.turn.id, since: work?.id === ev.turn.id ? work.since : Date.parse(ev.turn.time), last: Date.now() };
+    else if (work && work.id === ev.turn.id) { const took = (Date.now() - work.since) / 1000; work = null; if (!rp) setStep('LIVE · DONE', `task finished in ${fmtDur(took)}`); }
+    if (history) { const k = history.findIndex(t => t.id === ev.turn.id); if (k >= 0) history.splice(k, 1); history.unshift(ev.turn); }
+    // LIVE tab: a new prompt (or work after the open task ended) switches to that task
+    if (watching && !ev.turn.done && (!rp || (rp.turn.id !== ev.turn.id && (ev.type === 'prompt' || rp.turn.done)))) { openTurn(ev.turn.id); return; }
+    if (rp && rp.turn.id === ev.turn.id) {
+      const wasEnd = rp.i >= rp.turn.steps.length - 1;
+      rp.turn.steps.push(...(ev.type === 'prompt' ? [] : ev.steps));
+      focus = usedBy(rp.turn);
+      rp.turn.end = new Date().toISOString();
+      rp.turn.done = ev.turn.done;
+      const panel = document.getElementById('right'), top = panel.scrollTop;
+      renderTurn();
+      panel.scrollTop = top;
+      // Watching the latest step? Follow the new ones and keep the list scrolled to the bottom.
+      if (wasEnd && !rp.playing) { goto(rp.turn.steps.length - 1); panel.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' }); }
+      return;
+    }
+    if (!rp) renderHistory();
+    if (!followLive || rp) return;
+    if (ev.type === 'prompt') liveQ.push({ prompt: ev.turn.text, id: ev.turn.id });
+    for (const s of ev.steps || []) liveQ.push({ s, id: ev.turn.id });
+    drainLive();
+  };
+}
+function drainLive() {
+  if (liveTimer || !liveQ.length || rp) return;
+  const it = liveQ.shift();
+  if (!liveTurn || liveTurn.id !== it.id || it.prompt !== undefined) liveTurn = { id: it.id, text: it.prompt || liveTurn?.text || '', steps: [] };
+  if (it.prompt === undefined) liveTurn.steps.push(it.s);
+  if (selected) { const m = it.prompt !== undefined ? { verb: 'YOU', label: it.prompt } : mapStep(it.s); setStep(m.verb, esc(clipS(m.label, 200))); } // keep the selection, update the text only
+  else if (it.prompt !== undefined) showAt([], -1, it.prompt);
+  else showAt(liveTurn.steps, liveTurn.steps.length - 1, liveTurn.text);
+  nowEl.firstChild.textContent = 'LIVE · ' + nowEl.firstChild.textContent;
+  liveTimer = setTimeout(() => { liveTimer = 0; drainLive(); }, liveQ.length > 6 ? 300 : 900);
+}
+connectLive();
+
+// Usage panel: plan limits saved to usage.json by statusline.mjs (Claude Code's status line, which only the terminal runs),
+// and the latest session's context fill, which the server reads from the session logs.
+async function loadUsage() {
+  const get = async url => { try { const r = await fetch(url); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [u, c] = await Promise.all([get('usage.json?' + Date.now()), get('/api/context')]);
+  const row = (name, mid, pct, cls = '') => `<div class="ur ${cls}"><span>${name}</span>${mid ? `<em>${mid}</em>` : ''}<b>${pct}</b></div>`;
+  const bar = pct => `<div class="ubar"><i style="width:${Math.min(100, pct)}%"></i></div>`;
+  const live = w => w && w.resets_at * 1000 > Date.now();
+  const inHM = sec => `Resets in ${Math.floor(sec / 3600)} hr ${Math.floor(sec % 3600 / 60)} min`;
+  const at = sec => 'Resets ' + new Date(sec * 1000).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  let html = c ? (c.max ? row('Context window', '', `${fmtTok(c.tokens)} / ${fmtTok(c.max)} (${Math.round(c.tokens / c.max * 100)}%)`) + bar(c.tokens / c.max * 100) : row('Context window', '', fmtTok(c.tokens))) : '';
+  html += '<div class="usep"></div>' + row(`Plan usage limits${u?.plan ? ' · ' + esc(u.plan) : ''}`, '', u && (live(u.fiveHour) || live(u.weekly)) ? 'as of ' + fmtDur((Date.now() - u.time) / 1000) + ' ago' : '', 'dim');
+  if (u && live(u.fiveHour)) html += row('Session limit', inHM(u.fiveHour.resets_at - Date.now() / 1000), Math.round(u.fiveHour.used_percentage) + '%', 'h') + bar(u.fiveHour.used_percentage);
+  if (u && live(u.weekly)) html += row('Weekly · all models', at(u.weekly.resets_at), Math.round(u.weekly.used_percentage) + '%', 'h') + bar(u.weekly.used_percentage);
+  if (!u || !(live(u.fiveHour) || live(u.weekly))) html += '<div class="note">Limits update each time Codex answers.</div>';
+  document.getElementById('usageBody').innerHTML = html;
+}
+loadUsage(); setInterval(loadUsage, 15000);
+
+// ---------------- interaction ----------------
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+let downAt = null;
+function pick(ev) {
+  mouse.set(ev.clientX / innerWidth * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hits = ray.intersectObjects(hitMeshes.filter(h => h.userData.v.L.on), false);
+  if (hits.length) return hits[0].object.userData.v;
+  return ray.intersectObject(heart, false).length ? CORE : null;
+}
+canvas.addEventListener('pointermove', ev => { hovered = pick(ev); canvas.style.cursor = hovered ? 'pointer' : 'grab'; });
+canvas.addEventListener('pointerdown', ev => downAt = [ev.clientX, ev.clientY]);
+canvas.addEventListener('pointerup', ev => {
+  if (!downAt || Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) > 5) return;
+  const v = pick(ev);
+  if (!v && tab === 'history') return;
+  stopReplay();
+  if (v === CORE) { select(null); renderNode(CORE); coreKick = 1; } else select(v);
+});
+addEventListener('keydown', ev => { if (ev.key === 'Escape') { stopReplay(); select(null); } });
+// Center the brain in the space the side panels leave free.
+function fitView() {
+  camera.aspect = innerWidth / innerHeight;
+  const left = innerWidth > 1100 ? 280 : 0, right = innerWidth > 760 ? 362 : 0;
+  camera.setViewOffset(innerWidth, innerHeight, (right - left) / 2, innerWidth > 760 ? 0 : 160, innerWidth, innerHeight);
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', fitView);
+fitView();
+
+// ---------------- background music: a techno loop (audio/techno_loop.ogg) that drives the spectrum ----------------
+const music = { ctx: new AudioContext(), muted: false, on: false, vol: 31 };
+try { music.muted = localStorage.getItem('brain.muted') === '1'; music.vol = +(localStorage.getItem('brain.vol') ?? 31); } catch {}
+music.gain = music.ctx.createGain(); music.gain.gain.value = 0; // fades in to the slider volume
+// slider % squared, so equal steps sound like equal changes in loudness
+const setVolume = () => music.gain.gain.setTargetAtTime(music.muted ? 0 : (music.vol / 100) ** 2, music.ctx.currentTime, 0.05);
+document.getElementById('vol').value = music.vol;
+bindSlider('vol', v => { music.vol = v; setVolume(); try { localStorage.setItem('brain.vol', v); } catch {} }, v => v + '%');
+music.an = music.ctx.createAnalyser(); music.an.fftSize = 1024; music.an.smoothingTimeConstant = 0.7;
+music.an.connect(music.gain).connect(music.ctx.destination); // muting lowers the gain after the analyser
+music.bins = new Uint8Array(music.an.frequencyBinCount);
+fetch('audio/techno_loop.ogg').then(r => r.arrayBuffer()).then(b => music.ctx.decodeAudioData(b)).then(buf => {
+  const src = music.ctx.createBufferSource(); src.buffer = buf; src.loop = true; // sample-exact, gapless loop
+  src.connect(music.an); src.start(); music.on = true;
+}).catch(() => {});
+// Browsers only start sound after a click or key press, unless the app window was opened with autoplay allowed.
+const wakeMusic = () => music.ctx.resume();
+addEventListener('pointerdown', wakeMusic); addEventListener('keydown', wakeMusic);
+
+// ---------------- spectrum: the music's frequencies, or an activity meter while it's muted ----------------
+const spec = document.getElementById('spectrum'), sg = spec.getContext('2d');
+spec.onclick = () => {
+  music.muted = !music.muted;
+  setVolume();
+  try { localStorage.setItem('brain.muted', music.muted ? '1' : '0'); } catch {}
+};
+function drawSpectrum(t, level) {
+  sg.clearRect(0, 0, spec.width, spec.height);
+  const n = 48, w = spec.width / n;
+  const live = music.on && !music.muted && music.vol > 0 && music.ctx.state === 'running';
+  if (live) music.an.getByteFrequencyData(music.bins);
+  for (let i = 0; i < n; i++) {
+    const v = live ? (music.bins[Math.round(350 ** (i / (n - 1)))] / 255) ** 1.6 // log-spaced bins, ~43 Hz to 15 kHz
+      : (0.5 + 0.5 * Math.sin(t * 3.1 + i * 0.7) * Math.sin(t * 1.7 + i * 0.31)) * (0.18 + level * 0.82);
+    const h = Math.max(1, v * spec.height);
+    sg.fillStyle = `rgba(255,${150 + v * 80 | 0},70,${0.35 + v * 0.65})`;
+    sg.fillRect(i * w, spec.height - h, w - 1.5, h);
+  }
+}
+
+// ---------------- frame loop ----------------
+const clock = new THREE.Clock();
+const camDir = new THREE.Vector3(), scr = new THREE.Vector3();
+let coreAct = 0;
+const LABEL_NEAR = 30;    // a name shows once the camera is this close to its node (main-ring names a bit sooner, small ones later)
+function measureLabels() { for (const v of [...nodes, CORE]) { v.lab.style.display = ''; v.lw = v.lab.lastChild.offsetWidth; } }
+measureLabels();
+document.fonts?.ready.then(measureLabels);
+renderHome();
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+  controls.update();
+
+  // core
+  coreKick = Math.max(0, coreKick - dt * 0.35);
+  if (work && Date.now() - work.last > 5 * 60000) work = null; // nothing for 5 minutes: assume it ended
+  if (work) coreKick = Math.max(coreKick, 0.45 + 0.2 * Math.sin(t * 5));
+  const busy = Math.min(1, nodes.reduce((a, n) => a + n.act, 0) / 12);
+  coreAct += (Math.min(1, coreKick + busy * 0.2) - coreAct) * Math.min(1, dt * 3);
+  core.rotation.y += dt * 0.12 * speed;
+  brainGlow.value = 0.4 + coreAct * 0.8 + 0.12 * Math.sin(t * 2.2);
+  heart.scale.setScalar(1 + coreAct * 0.05);
+  heartGlow.material.opacity = 0.12 + coreAct * 0.2;
+  heartGlow.scale.setScalar(5 + coreAct * 1.5);
+  key.intensity = 50 + coreAct * 90;
+  // aperture spreads the ring strands apart; activity spins the ring faster and brighter
+  ringSpin.rotation.z += dt * (0.15 + coreAct * 0.6);
+  for (const l of strands) {
+    l.scale.setScalar(0.85 + aperture * 0.3);
+    l.material.opacity = l.userData.op * (0.6 + coreAct * 0.5);
+  }
+
+  // rings and nodes
+  focusAmt += ((focus ? 1 : 0) - focusAmt) * Math.min(1, dt * 4);
+  for (const L of LAYERS) { L.spin.rotation.y += dt * L.speed * speed; L.ring.material.opacity = (0.2 + ((selected && selected.L === L) || litLayer === L ? 0.3 : 0)) * (1 - focusAmt * 0.7); }
+  for (const n of nodes) {
+    const tgt = n.target + (n === hovered ? 0.5 : 0);
+    n.act += (tgt - n.act) * Math.min(1, dt * 6);
+    // Focus mode (a replay is open): anything the prompt didn't use fades to see-through gray.
+    n.fade += ((focus && !focus.has(n) && n !== hovered ? 1 : 0) - n.fade) * Math.min(1, dt * 4);
+    for (const m of n.mats) {
+      m.emissive.copy(n.emis).lerp(GRAY, n.fade);
+      m.color.copy(n.emis).lerp(GRAY, n.fade);
+      m.opacity = m.userData.op * (1 + n.act) * (1 - n.fade * 0.82);
+      m.emissiveIntensity = (0.05 + n.act * 0.8) * (1 - n.fade * 0.75);
+      // faded glass stops reflecting, or single faces flash as it spins (clearcoat kept above 0 so the shader isn't rebuilt)
+      m.envMapIntensity = 0.7 * (1 - n.fade); m.specularIntensity = 1 - n.fade; m.clearcoat = 1 - n.fade * 0.999;
+    }
+    n.mesh.rotation.y += dt * (0.5 + n.act * 2); n.mesh.rotation.x += dt * 0.2;
+    n.holder.position.y = Math.sin(t * 0.8 + n.bob) * 0.08;
+    n.glow.material.opacity = (0.14 + n.act * 0.3) * (1 - n.fade * 0.95);
+    n.glow.scale.setScalar(n.L.size * NS * (1.25 + n.act * 0.6));
+    n.badge.material.opacity = 1 - n.fade * 0.85;
+    n.badge.material.color.setScalar(1).lerp(GRAY_BADGE, n.fade);
+    n.badge.scale.setScalar(n.badge.userData.base * (1 + n.act * 0.3));
+    n.mesh.getWorldPosition(n.world);
+  }
+  CORE.world.set(0, 0, 0);
+
+  // flyers (your message travelling into the core)
+  for (let i = flyers.length - 1; i >= 0; i--) {
+    const f = flyers[i]; f.t += dt / 1.1;
+    const e = f.t * f.t * (3 - 2 * f.t);
+    f.s.position.copy(f.from).multiplyScalar(1 - e);
+    f.s.material.opacity = 1 - Math.max(0, f.t - 0.85) * 6;
+    if (f.t >= 1) { scene.remove(f.s); flyers.splice(i, 1); coreKick = 1; }
+  }
+  updateEdges(t, dt);
+
+  // backdrop motion
+  skyTime.value = t; streakScale.value = renderer.domElement.height / 2;
+  for (const nb of nebulae) { nb.s.material.rotation += dt * 0.004; nb.s.material.opacity = nb.op * (0.85 + 0.15 * Math.sin(t * 0.25 + nb.ph)); }
+  galaxySpin.rotation.y += dt * 0.012;
+  dust.rotation.y += dt * 0.006;
+  for (const p of planets) {
+    p.m.rotation.y += dt * p.spin;
+    if (p.orbit) { p.orbit.a += dt * p.orbit.speed; p.m.position.set(Math.cos(p.orbit.a) * p.orbit.r, Math.sin(p.orbit.a) * 3, Math.sin(p.orbit.a) * p.orbit.r); }
+    if (p.trail) p.trail.material.uniforms.uHead.value = p.orbit.a / 6.283;
+  }
+
+  // labels: small skill names wait until you zoom in, and a label that would overlap a more important one is hidden
+  const camDist = camera.position.length();
+  const conn = new Set();
+  if (selected) for (const [a, b] of edgesOf(selected.d.id)) { conn.add(a); conn.add(b); }
+  scr.set(0, 4.1, 0).project(camera);
+  const cx = (scr.x * 0.5 + 0.5) * innerWidth, cy = (-scr.y * 0.5 + 0.5) * innerHeight;
+  coreLab.style.transform = `translate(${cx | 0}px, ${cy | 0}px)`;
+  const placed = [[cx + 17, cy - 21, cx + 21 + CORE.lw, cy]];
+  const want = [];
+  for (const n of nodes) {
+    const key = n === hovered || n === selected;
+    const near = n.world.distanceTo(camera.position) < LABEL_NEAR * (n.minor ? 0.6 : n.always ? 1.3 : 1);
+    let show = n.L.on && (key || allLabels || near || n.act > 0.35 || conn.has(n.d.id)) && (key || n.fade < 0.5);
+    if (show && n.minor && !(key || allLabels || near || n.act > 0.7 || conn.has(n.d.id))) show = false; // 0.7: a skill used this turn (held at 0.8) keeps its name
+    if (show) {
+      scr.copy(n.world).project(camera);
+      if (scr.z <= 1) {
+        const x = (scr.x * 0.5 + 0.5) * innerWidth, y = (-scr.y * 0.5 + 0.5) * innerHeight;
+        const behind = n.world.distanceTo(camera.position) > camDist + 1.5;
+        want.push({ n, x, y, behind, prio: (key ? 1000 : 0) + n.act * 10 + (n.always ? 2 : 0) + (behind ? 0 : 1) });
+        continue;
+      }
+    }
+    if (n.lab.style.display !== 'none') n.lab.style.display = 'none';
+  }
+  want.sort((a, b) => b.prio - a.prio);
+  for (const w of want) {
+    const r = [w.x + 17, w.y - 21, w.x + 21 + w.n.lw, w.y];
+    if (!allLabels && w.prio < 1000 && placed.some(p => r[0] < p[2] && r[2] > p[0] && r[1] < p[3] && r[3] > p[1])) { w.n.lab.style.display = 'none'; continue; }
+    placed.push(r);
+    const n = w.n;
+    n.lab.style.display = '';
+    n.lab.style.transform = `translate(${w.x | 0}px, ${w.y | 0}px)`;
+    n.lab.style.opacity = n === hovered || n === selected || n.act > 0.35 ? 1 : w.behind ? 0.28 : 0.78;
+    n.lab.classList.toggle('sel', n === selected);
+  }
+
+  drawSpectrum(t, coreAct);
+  composer.render();
+  requestAnimationFrame(frame);
+}
+controls.update(); renderer.compile(scene, camera); composer.render(); // compile every shader now, while the intro still covers the scene
+boot.loaded();
+boot.entered.then(frame); // the loop starts when you scroll in, so it doesn't compete with the intro
+</script>
+</body>
+</html>

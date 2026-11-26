@@ -1,0 +1,8 @@
+# generated on each PC
+app/data.js
+app/usage.json
+codex/app/data.js
+# Node is downloaded by the installer (Claude edition) or included in the release zip (Codex edition)
+node/
+release/
+demo/sample-home/
