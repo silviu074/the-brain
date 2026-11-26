@@ -14,7 +14,7 @@ short note the AI writes before you close a chat, so a fresh chat can pick up th
 - Once a new chat has picked it up, the file is marked as used, so it isn't picked up twice.
 
 In the Brain, each planet can stand for one project. A project's planet, its handoff and its notes file
-(app/worlds/<id>.md) go together: the planet is where you look, the handoff is where the work stands.
+(`app/worlds/<id>.md`) go together: the planet is where you look, the handoff is where the work stands.
 
 ## Instructions for the AI
 

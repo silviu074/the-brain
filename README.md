@@ -9,7 +9,7 @@ page and a button to start it.
 
 <p align="center"><img src="docs/demo.webp" width="800" alt="The Brain: the intro, the map, a prompt running live, the HEAT view, flying into a planet"></p>
 
-Full demo video (1 minute, 60 fps): [docs/demo.mp4](docs/demo.mp4). The demo uses made-up sample data, not a
+Full demo video (about 1 minute): [docs/demo.mp4](docs/demo.mp4). The demo uses made-up sample data, not a
 real setup.
 
 | | |
@@ -56,7 +56,7 @@ download and install Drop Convert first from its own repo:
 [github.com/silviu074/drop-convert](https://github.com/silviu074/drop-convert) (Releases, then the installer).
 
 To add a planet for your own app, copy the `convert` entry in [app/worlds.js](app/worlds.js): give it a new
-id, a spot in the sky and a page. A notes file in app/worlds/<id>.md shows on its page.
+id, a spot in the sky and a page. A notes file in `app/worlds/<id>.md` shows on its page.
 
 ## Handoffs: one per project
 
