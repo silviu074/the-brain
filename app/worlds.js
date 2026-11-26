@@ -9,9 +9,9 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 // ---------------- Drop Convert ----------------
 const convertPage = () => simplePage('convert', {
   kicker: 'APP · WINDOWS AND MAC', title: 'Drop Convert',
-  lead: 'Drop a file on the orange bubble, pick a format, and the converted copy shows up next to the original.',
-  where: [['Code', 'github.com/silviu074/drop-convert'], ['Start button', 'needs Drop Convert installed']],
-  open: `<button class="wp-btn main" data-launch="drop-convert">Start Drop Convert</button>${W.convert.repo ? `<a class="wp-btn" href="${esc(W.convert.repo)}" target="_blank" rel="noopener">Code on GitHub</a>` : ''}`,
+  lead: 'Drop a file on the orange bubble, pick a format, and the converted copy shows up next to the original. A separate app: download and install it first, then start it from here.',
+  where: [['Get it first', 'separate download from github.com/silviu074/drop-convert'], ['Start button', 'works once Drop Convert is installed']],
+  open: `<a class="wp-btn main" href="${esc(W.convert.repo)}/releases/latest" target="_blank" rel="noopener">1 · Download Drop Convert</a><button class="wp-btn" data-launch="drop-convert">2 · Start Drop Convert</button>`,
   more: [
     ['What it converts', `<table><tr><td>Video</td><td>MP4, MOV, WEBM, GIF, or just the sound as MP3 or WAV</td></tr>
       <tr><td>GIF</td><td>MP4, MOV, WEBM</td></tr>
@@ -111,7 +111,7 @@ const MISSIONS = {
         </div></div>`,
       go: 'Now start it yourself', act: c => c.done() },
     { t: 'Start it', d: 'Start Drop Convert right from here.', fig: FIGS.start,
-      body: '<p>Drop Convert is a small orange bubble that floats on your desktop, above your other windows. Start it here, then look for the bubble.</p>',
+      body: '<p>Drop Convert is a separate app: a small orange bubble that floats on your desktop, above your other windows. Download and install it first from its GitHub page (button 1 at the top of this page). Then start it here and look for the bubble.</p>',
       go: 'Start Drop Convert', act: c => c.launch('drop-convert', 'Started. Look for the orange bubble on your desktop.') },
     { t: 'Convert a file', d: 'Drop a real file on the bubble and pick a format.', fig: FIGS.convert,
       body: '<p>Drag any video, image, audio file, Word file or PDF onto the bubble. The round menu shows only the formats that fit. Click one and the copy lands next to the original. The original is never changed.</p>',
@@ -183,11 +183,12 @@ function bindPage(body) { // the demo video: highlight the step that is playing
 // ---------------- The Brain (the core in the middle: click it, then scroll down) ----------------
 const brainPage = () => simplePage('brain', {
   kicker: 'APP · WINDOWS AND MAC', title: 'The <em>Brain</em>',
-  lead: 'A live 3D map of your Claude Code setup. Everything Claude can use orbits the core and lights up while it works.',
+  lead: 'A visual way to follow what AI does on your computer: live while it works, and everything it did before. It is also a hub for your own apps, one planet each.',
   where: [['Folder', 'app', true], ['Runs at', 'http://localhost:8767']],
   open: `<p class="wp-how">To open it again later, use The Brain shortcut on the Desktop or in the Start menu.</p>${W.brain.repo ? `<a class="wp-btn" href="${esc(W.brain.repo)}" target="_blank" rel="noopener">Code on GitHub</a>` : ''}`,
   more: [
-    ['Using it', `<table><tr><td>See an item</td><td>Click it: it locks, and only it and what it talks to stay lit</td></tr>
+    ['Using it', `<table><tr><td>Move around</td><td>Scroll. Click the core or a planet, then scroll down to fly into its page; scroll up at the top to fly back out</td></tr>
+      <tr><td>See an item</td><td>Click it: it locks, and only it and what it talks to stay lit</td></tr>
       <tr><td>Fly behind an item</td><td>Double-click it; Esc flies home</td></tr>
       <tr><td>Find anything</td><td>Press / to search, or Ctrl+K for the command list</td></tr>
       <tr><td>Watch Claude work</td><td>Open the LIVE tab; HISTORY replays a past prompt</td></tr>
@@ -197,7 +198,7 @@ const brainPage = () => simplePage('brain', {
     ['What you see', `<ul><li>The core in the middle is Claude. The rings around it are the layers of the setup: rules, skills, agents, plugins, MCP servers and programs.</li>
       <li>Lines and comets show who talks to whom, only while something runs.</li>
       <li>The day reel at the bottom shows the last 30 days; taller frames mean more tokens.</li>
-      <li>The planets farther out are scenery, except Drop Convert, which has its own page like this one.</li></ul>`],
+      <li>The Brain is also a hub for your apps: each named planet is one app or project with its own page. Drop Convert is the example (a separate download); the nameless planets are scenery. Add your own in app/worlds.js.</li></ul>`],
     ['How it was made', `<ul><li>Made with AI: I described what I wanted in plain words, Claude Code wrote and tested the code, and I reviewed and used it.</li>
       <li>One HTML page with three.js, plus a small Node server that reads Claude Code's own session files on this computer.</li>
       <li>Nothing leaves the computer.</li></ul>`]] });
